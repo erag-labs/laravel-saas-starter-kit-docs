@@ -1,7 +1,7 @@
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { DefaultTheme, HeadConfig, PageData } from 'vitepress';
-import { frameworkKeys, kits, paymentFaqs, plans, site, type FrameworkKey, type PlanKey } from './site';
+import { frameworkKeys, kitPriceList, kits, paymentFaqs, plans, site, type FrameworkKey, type PlanKey } from './site';
 
 type JsonLd = Record<string, unknown>;
 
@@ -322,7 +322,7 @@ export const writeLlmsFiles = async (srcDir: string, outDir: string, docsSidebar
     '',
     `> ${site.description}`,
     '',
-    `${site.name} sells three Laravel SaaS starter kits that share one Laravel 13 backend: Vue 3.5, React 19 or Svelte 5 with Inertia v3, TypeScript, Tailwind CSS v4 and shadcn components. Each kit costs $${site.kitPrice} and all three cost $${site.bundlePrice}, as a one-time payment through GitHub Sponsors with lifetime access and weekly updates. Repository access is granted automatically after payment.`,
+    `${site.name} sells three Laravel SaaS starter kits that share one Laravel 13 backend: Vue 3.5, React 19 or Svelte 5 with Inertia v3, TypeScript, Tailwind CSS v4 and shadcn components. The kits cost ${kitPriceList}, and all three cost $${site.bundlePrice}, as a one-time payment through GitHub Sponsors with lifetime access and weekly updates. Repository access is granted automatically after payment.`,
     '',
     'Key features: database-per-tenant multi-tenancy (stancl/tenancy), subdomain identification, per-domain app name, language and auth features, Laravel Fortify authentication with two-factor and passkeys, Spatie roles and permissions, queued user invitations, global maintenance mode and workspace suspension, 17 languages, database-driven menus, sidebar or header layouts, Pest tests, Larastan, Pint and Laravel Boost.',
     '',

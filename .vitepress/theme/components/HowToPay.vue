@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { formatPrice, paymentFaqs, site } from '../../site';
+import { formatPrice, kitPriceList, paymentFaqs, site } from '../../site';
 import FaqList from './FaqList.vue';
 import SectionHeading from './SectionHeading.vue';
 
 const steps: { title: string; text: string; link?: { text: string; href: string } }[] = [
   {
     title: 'Choose your plan',
-    text: `Pick a single kit — Vue, React or Svelte for ${formatPrice(site.kitPrice)} — or All Starter Kits for ${formatPrice(site.bundlePrice)}.`,
+    text: `Pick a single kit — ${kitPriceList} — or All Starter Kits for ${formatPrice(site.bundlePrice)}.`,
     link: { text: 'Compare plans', href: '/pricing.html' },
   },
   {

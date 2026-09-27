@@ -35,6 +35,12 @@ export interface Plan {
 
 const githubOwner = 'https://github.com/erag-technologies';
 
+export const prices = { vue: 29, react: 30, svelte: 33, bundle: 79 } as const;
+
+export const bundleSavings = prices.vue + prices.react + prices.svelte - prices.bundle;
+
+export const kitPriceList = `Vue $${prices.vue}, React $${prices.react} or Svelte $${prices.svelte}`;
+
 export const site = {
   name: 'SaaS Laravel',
   url: 'https://saas-laravel.com',
@@ -45,8 +51,8 @@ export const site = {
   sponsorUrl: 'https://github.com/sponsors/eramitgupta',
   githubProfile: githubOwner,
   docsEditPattern: `${githubOwner}/laravel-saas-starter-kit-docs/edit/main/:path`,
-  bundlePrice: 79,
-  kitPrice: 29,
+  bundlePrice: prices.bundle,
+  kitPriceFrom: Math.min(prices.vue, prices.react, prices.svelte),
   paymentNote: 'One-time payment · Lifetime access · Weekly updates included · No recurring subscription',
   accessNote: 'Lifetime access with weekly updates.',
 };
@@ -70,7 +76,7 @@ export const kits: Record<FrameworkKey, Kit> = {
     key: 'vue',
     name: 'Vue',
     title: 'Vue Starter Kit',
-    price: 29,
+    price: prices.vue,
     repo: `${githubOwner}/saas-laravel-starter-kit-vue`,
     repoName: 'saas-laravel-starter-kit-vue',
     tagline: 'Vue 3.5 with <script setup>, TypeScript and shadcn-vue.',
@@ -97,7 +103,7 @@ export const kits: Record<FrameworkKey, Kit> = {
     key: 'react',
     name: 'React',
     title: 'React Starter Kit',
-    price: 29,
+    price: prices.react,
     repo: `${githubOwner}/saas-laravel-starter-kit-react`,
     repoName: 'saas-laravel-starter-kit-react',
     tagline: 'React 19 with TypeScript and shadcn/ui on Radix UI.',
@@ -124,7 +130,7 @@ export const kits: Record<FrameworkKey, Kit> = {
     key: 'svelte',
     name: 'Svelte',
     title: 'Svelte Starter Kit',
-    price: 29,
+    price: prices.svelte,
     repo: `${githubOwner}/saas-laravel-starter-kit-svelte`,
     repoName: 'saas-laravel-starter-kit-svelte',
     tagline: 'Svelte 5 runes with TypeScript and shadcn-svelte.',
@@ -155,7 +161,7 @@ export const plans: Record<PlanKey, Plan> = {
   vue: {
     key: 'vue',
     name: 'Vue Starter Kit',
-    price: 29,
+    price: prices.vue,
     href: '/pricing/vue.html',
     frameworks: ['vue'],
     tagline: 'Laravel SaaS backend + Vue 3.5 frontend.',
@@ -165,7 +171,7 @@ export const plans: Record<PlanKey, Plan> = {
   react: {
     key: 'react',
     name: 'React Starter Kit',
-    price: 29,
+    price: prices.react,
     href: '/pricing/react.html',
     frameworks: ['react'],
     tagline: 'Laravel SaaS backend + React 19 frontend.',
@@ -175,7 +181,7 @@ export const plans: Record<PlanKey, Plan> = {
   svelte: {
     key: 'svelte',
     name: 'Svelte Starter Kit',
-    price: 29,
+    price: prices.svelte,
     href: '/pricing/svelte.html',
     frameworks: ['svelte'],
     tagline: 'Laravel SaaS backend + Svelte 5 frontend.',
@@ -185,11 +191,11 @@ export const plans: Record<PlanKey, Plan> = {
   'all-kits': {
     key: 'all-kits',
     name: 'All Starter Kits',
-    price: 79,
+    price: prices.bundle,
     href: '/pricing/all-kits.html',
     frameworks: ['vue', 'react', 'svelte'],
     tagline: 'Vue, React and Svelte — the complete collection.',
-    benefits: ['All three starter kits', 'Access to all three kit repositories', 'Save $8 compared to buying separately'],
+    benefits: ['All three starter kits', 'Access to all three kit repositories', `Save $${bundleSavings} compared to buying separately`],
     featured: true,
   },
 };
@@ -349,7 +355,7 @@ export const paymentFaqs: { question: string; answer: string }[] = [
   },
   {
     question: 'Is it a one-time payment?',
-    answer: `Yes. ${formatPrice(site.kitPrice)} for a single kit or ${formatPrice(site.bundlePrice)} for all three kits, paid once through GitHub Sponsors.`,
+    answer: `Yes. ${kitPriceList} for a single kit, or ${formatPrice(site.bundlePrice)} for all three kits, paid once through GitHub Sponsors.`,
   },
   {
     question: 'Do I get lifetime access?',
@@ -370,7 +376,7 @@ export const paymentFaqs: { question: string; answer: string }[] = [
   },
   {
     question: 'Can I buy all three kits?',
-    answer: `Yes. The All Starter Kits bundle includes Vue, React and Svelte for ${formatPrice(site.bundlePrice)} — ${formatPrice(site.kitPrice * 3 - site.bundlePrice)} less than buying them separately.`,
+    answer: `Yes. The All Starter Kits bundle includes Vue, React and Svelte for ${formatPrice(site.bundlePrice)} — ${formatPrice(bundleSavings)} less than buying them separately.`,
   },
   {
     question: 'Where do I get support?',

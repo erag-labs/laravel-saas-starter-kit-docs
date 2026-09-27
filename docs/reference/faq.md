@@ -70,7 +70,7 @@ No, but it is the easiest option because tenant subdomains (`*.vue.test`) work a
 
 ### How much does it cost?
 
-Each kit is $29 and the All Starter Kits bundle (Vue + React + Svelte) is $79. Both are one-time payments with lifetime access. See [Pricing](/pricing).
+The Vue kit is $29, the React kit $30 and the Svelte kit $33. The All Starter Kits bundle (Vue + React + Svelte) is $79, which saves $13. All are one-time payments with lifetime access. See [Pricing](/pricing).
 
 ### Is it a subscription?
 

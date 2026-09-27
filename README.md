@@ -20,7 +20,7 @@ Source of [saas-laravel.com](https://saas-laravel.com): the product website and 
 | Frontend | Vue 3.5, React 19 or Svelte 5 with TypeScript, Tailwind CSS v4 and shadcn components |
 | Quality | Pest, Larastan, Pint, ESLint, Prettier and Laravel Boost |
 
-Each kit is **$29**, or **$79** for all three — a one-time payment with lifetime access and weekly updates.
+Vue is **$29**, React **$30** and Svelte **$33**, or **$79** for all three (save $13) — a one-time payment with lifetime access and weekly updates.
 
 ## Tech stack
 

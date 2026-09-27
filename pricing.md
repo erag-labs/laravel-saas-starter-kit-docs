@@ -1,6 +1,6 @@
 ---
 title: "Laravel SaaS Starter Kit Pricing"
-description: "Buy the Vue, React or Svelte Laravel SaaS starter kit for $29, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription."
+description: "Laravel SaaS starter kits: Vue $29, React $30 or Svelte $33, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription."
 layout: page
 sidebar: false
 aside: false
@@ -17,7 +17,7 @@ head:
       content: "Laravel SaaS Starter Kit Pricing"
   - - meta
     - property: og:description
-      content: "Buy the Vue, React or Svelte Laravel SaaS starter kit for $29, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription."
+      content: "Laravel SaaS starter kits: Vue $29, React $30 or Svelte $33, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription."
   - - meta
     - property: og:url
       content: https://saas-laravel.com/pricing.html
@@ -26,7 +26,7 @@ head:
       content: "Laravel SaaS Starter Kit Pricing"
   - - meta
     - name: twitter:description
-      content: "Buy the Vue, React or Svelte Laravel SaaS starter kit for $29, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription."
+      content: "Laravel SaaS starter kits: Vue $29, React $30 or Svelte $33, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription."
 ---
 
 <PricingSection primary />
