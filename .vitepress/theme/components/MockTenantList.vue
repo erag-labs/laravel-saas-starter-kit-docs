@@ -30,7 +30,7 @@ const rows = [
     <div class="sl-mock-bar"><i /><i /><i /><span>vue.test/tenants</span></div>
     <div class="mock-body">
       <aside class="mock-side">
-        <div class="mock-brand"><img src="/logo.svg" alt="" width="18" height="18" />SaaS Laravel</div>
+        <div class="mock-brand"><img src="/logo.svg" alt="SaaS Laravel logo" width="18" height="18" />SaaS Laravel</div>
         <div v-for="item in menu" :key="item.label" class="mock-nav" :class="{ active: item.label === 'Tenants' }">
           <SlIcon :name="item.icon" :size="14" />{{ item.label }}
         </div>

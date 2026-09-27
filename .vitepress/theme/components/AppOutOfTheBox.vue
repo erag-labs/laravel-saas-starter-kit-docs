@@ -41,7 +41,7 @@ const features: { icon: IconName; title: string; text: string }[] = [
             <span class="box-ready-check"><SlIcon name="check" :size="12" /></span>{{ item }}
           </li>
         </ul>
-        <a class="sl-link box-link" href="/docs.html">Read the docs →</a>
+        <a class="sl-link box-link" href="/docs.html">Read the documentation →</a>
       </div>
 
       <div class="box-grid">

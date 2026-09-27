@@ -39,7 +39,7 @@ const year = new Date().getFullYear();
   <footer class="footer">
     <div class="sl-container footer-inner">
       <div class="footer-brand">
-        <a href="/" class="footer-logo"><img src="/logo.svg" alt="" width="28" height="28" />{{ site.name }}</a>
+        <a href="/" class="footer-logo"><img src="/logo.svg" alt="SaaS Laravel logo" width="28" height="28" />{{ site.name }}</a>
         <p>Laravel SaaS starter kits for Vue, React and Svelte. {{ site.accessNote }}</p>
       </div>
       <nav v-for="column in columns" :key="column.title" class="footer-col" :aria-label="column.title">
@@ -57,7 +57,7 @@ const year = new Date().getFullYear();
     </div>
     <div class="sl-container footer-bottom">
       <span>© {{ year }} {{ site.name }}</span>
-      <a :href="site.githubProfile" target="_blank" rel="noopener" aria-label="GitHub"><SlIcon name="github" :size="20" /></a>
+      <a :href="site.githubProfile" target="_blank" rel="noopener"><SlIcon name="github" :size="20" /><span class="sl-sr-only">SaaS Laravel on GitHub</span></a>
     </div>
     <div class="footer-wordmark" aria-hidden="true">{{ site.name }}</div>
   </footer>

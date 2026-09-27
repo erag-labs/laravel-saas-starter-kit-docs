@@ -165,7 +165,7 @@ const extras: { icon: IconName; title: string; text: string }[] = [
                 <span class="row-check"><SlIcon name="check" :size="13" /></span>{{ point }}
               </li>
             </ul>
-            <a class="sl-link" :href="row.docs">Read the docs →</a>
+            <a class="sl-link" :href="row.docs">Read the {{ row.eyebrow }} docs →</a>
           </div>
           <div class="row-visual">
             <component :is="row.visual" />

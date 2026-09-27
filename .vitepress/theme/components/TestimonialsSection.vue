@@ -125,7 +125,8 @@ const testimonials: Testimonial[] = [
 ];
 
 const hasSamples = computed(() => testimonials.some((testimonial) => testimonial.sample));
-const loop = computed(() => [...testimonials, ...testimonials]);
+const isMounted = ref(false);
+const loop = computed(() => (isMounted.value ? [...testimonials, ...testimonials] : testimonials));
 
 const viewport = ref<HTMLElement | null>(null);
 const track = ref<HTMLElement | null>(null);
@@ -237,6 +238,7 @@ const onFocusOut = () => {
 };
 
 onMounted(() => {
+  isMounted.value = true;
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   viewport.value?.addEventListener('wheel', onWheel, { passive: false });
   frame = requestAnimationFrame(tick);
@@ -298,7 +300,7 @@ onBeforeUnmount(() => {
             <img v-if="testimonial.avatar" :src="testimonial.avatar" :alt="testimonial.name" class="avatar" width="40" height="40" loading="lazy" />
             <span v-else class="avatar" :style="{ '--avatar-accent': testimonial.accent }" aria-hidden="true">{{ initials(testimonial.name) }}</span>
             <div class="person-meta">
-              <strong>{{ testimonial.name }}</strong>
+              <span class="person-name">{{ testimonial.name }}</span>
               <span>{{ testimonial.role }}<template v-if="testimonial.location"> · {{ testimonial.location }}</template></span>
             </div>
           </div>
@@ -439,7 +441,8 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.person-meta strong {
+.person-meta .person-name {
+  font-weight: 600;
   font-size: 14px;
   line-height: 1.3;
   color: var(--vp-c-text-1);

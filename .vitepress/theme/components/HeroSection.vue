@@ -21,8 +21,9 @@ const highlights = ['Multi-tenancy', 'Auth & passkeys', 'Roles & permissions', '
           Build Laravel SaaS Products <span class="sl-gradient-text">Faster</span>
         </h1>
         <p class="sl-lead">
-          Production-ready Laravel 13 starter kits with multi-tenancy, authentication, roles &amp; permissions and
-          localization — built on one shared backend with a Vue, React or Svelte frontend.
+          Build and launch Laravel SaaS products faster with production-ready Laravel 13 starter kits: multi-tenancy,
+          authentication, roles &amp; permissions and localization — built on one shared backend with a Vue, React or Svelte
+          frontend.
         </p>
         <div class="sl-actions hero-actions">
           <a class="sl-btn sl-btn--primary sl-btn--lg" href="#features">
@@ -35,9 +36,9 @@ const highlights = ['Multi-tenancy', 'Auth & passkeys', 'Roles & permissions', '
         </ul>
         <div class="hero-frameworks">
           <span>Available for</span>
-          <a href="/kits/vue.html" aria-label="Vue Starter Kit"><FrameworkLogo name="vue" :size="22" /></a>
-          <a href="/kits/react.html" aria-label="React Starter Kit"><FrameworkLogo name="react" :size="22" /></a>
-          <a href="/kits/svelte.html" aria-label="Svelte Starter Kit"><FrameworkLogo name="svelte" :size="22" /></a>
+          <a href="/kits/vue.html" ><FrameworkLogo name="vue" :size="22" /><span class="sl-sr-only">Vue Starter Kit</span></a>
+          <a href="/kits/react.html" ><FrameworkLogo name="react" :size="22" /><span class="sl-sr-only">React Starter Kit</span></a>
+          <a href="/kits/svelte.html" ><FrameworkLogo name="svelte" :size="22" /><span class="sl-sr-only">Svelte Starter Kit</span></a>
         </div>
       </div>
       <div class="hero-visual sl-reveal">

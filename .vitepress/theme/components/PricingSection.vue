@@ -48,7 +48,7 @@ withDefaults(defineProps<{ primary?: boolean }>(), { primary: false });
             :class="plans[key].featured ? 'sl-btn--primary' : 'sl-btn--secondary'"
             :href="plans[key].href"
           >
-            View Details <span class="vpi-arrow-right" />
+            View details<span class="sl-sr-only"> for the {{ plans[key].name }}</span> <span class="vpi-arrow-right" />
           </a>
         </article>
       </div>
