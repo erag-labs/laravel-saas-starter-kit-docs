@@ -27,6 +27,7 @@ export interface Plan {
   name: string;
   price: number;
   href: string;
+  sponsorUrl: string;
   frameworks: FrameworkKey[];
   tagline: string;
   benefits: string[];
@@ -36,6 +37,8 @@ export interface Plan {
 const githubOwner = 'https://github.com/erag-technologies';
 
 export const prices = { vue: 29, react: 30, svelte: 33, bundle: 79 } as const;
+
+const sponsorTier = (tierId: number): string => `https://github.com/sponsors/eramitgupta/sponsorships?tier_id=${tierId}`;
 
 export const bundleSavings = prices.vue + prices.react + prices.svelte - prices.bundle;
 
@@ -163,6 +166,7 @@ export const plans: Record<PlanKey, Plan> = {
     name: 'Vue Starter Kit',
     price: prices.vue,
     href: '/pricing/vue.html',
+    sponsorUrl: sponsorTier(661330),
     frameworks: ['vue'],
     tagline: 'Laravel SaaS backend + Vue 3.5 frontend.',
     benefits: ['Vue 3.5, TypeScript & shadcn-vue', 'Multi-tenancy, auth, roles & permissions', 'Access to the Vue kit repository'],
@@ -173,6 +177,7 @@ export const plans: Record<PlanKey, Plan> = {
     name: 'React Starter Kit',
     price: prices.react,
     href: '/pricing/react.html',
+    sponsorUrl: sponsorTier(661332),
     frameworks: ['react'],
     tagline: 'Laravel SaaS backend + React 19 frontend.',
     benefits: ['React 19, TypeScript & shadcn/ui', 'Multi-tenancy, auth, roles & permissions', 'Access to the React kit repository'],
@@ -183,6 +188,7 @@ export const plans: Record<PlanKey, Plan> = {
     name: 'Svelte Starter Kit',
     price: prices.svelte,
     href: '/pricing/svelte.html',
+    sponsorUrl: sponsorTier(661333),
     frameworks: ['svelte'],
     tagline: 'Laravel SaaS backend + Svelte 5 frontend.',
     benefits: ['Svelte 5 runes, TypeScript & shadcn-svelte', 'Multi-tenancy, auth, roles & permissions', 'Access to the Svelte kit repository'],
@@ -193,6 +199,7 @@ export const plans: Record<PlanKey, Plan> = {
     name: 'All Starter Kits',
     price: prices.bundle,
     href: '/pricing/all-kits.html',
+    sponsorUrl: sponsorTier(661334),
     frameworks: ['vue', 'react', 'svelte'],
     tagline: 'Vue, React and Svelte — the complete collection.',
     benefits: ['All three starter kits', 'Access to all three kit repositories', `Save $${bundleSavings} compared to buying separately`],

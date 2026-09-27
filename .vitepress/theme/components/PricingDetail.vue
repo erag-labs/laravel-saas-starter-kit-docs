@@ -151,7 +151,7 @@ const savings = computed(() => planKits.value.reduce((total, kit) => total + kit
             <li><SlIcon name="check" :size="16" class="check" />Weekly Updates</li>
             <li v-for="benefit in plan.benefits" :key="benefit"><SlIcon name="check" :size="16" class="check" />{{ benefit }}</li>
           </ul>
-          <a class="sl-btn sl-btn--primary sl-btn--block" :href="site.sponsorUrl" target="_blank" rel="noopener">
+          <a class="sl-btn sl-btn--primary sl-btn--block" :href="plan.sponsorUrl" target="_blank" rel="noopener">
             <SlIcon name="github" :size="16" /> Sponsor / Purchase on GitHub
           </a>
           <a class="summary-how" href="/how-to-pay.html">How to pay</a>
@@ -169,7 +169,7 @@ const savings = computed(() => planKits.value.reduce((total, kit) => total + kit
           </p>
         </div>
         <div class="purchase-actions">
-          <a class="sl-btn sl-btn--lg purchase-btn" :href="site.sponsorUrl" target="_blank" rel="noopener">
+          <a class="sl-btn sl-btn--lg purchase-btn" :href="plan.sponsorUrl" target="_blank" rel="noopener">
             <SlIcon name="github" :size="16" /> Sponsor / Purchase on GitHub
           </a>
           <a class="purchase-link" href="/how-to-pay.html">Read how to pay →</a>
