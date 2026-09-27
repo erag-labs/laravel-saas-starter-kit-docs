@@ -1,0 +1,83 @@
+# SaaS Laravel
+
+> Production-ready Laravel SaaS starter kits for Vue, React and Svelte with lifetime access and weekly updates.
+
+SaaS Laravel sells three Laravel SaaS starter kits that share one Laravel 13 backend: Vue 3.5, React 19 or Svelte 5 with Inertia v3, TypeScript, Tailwind CSS v4 and shadcn components. The kits cost Vue $29, React $30 or Svelte $33, and all three cost $79, as a one-time payment through GitHub Sponsors with lifetime access and weekly updates. Repository access is granted automatically after payment.
+
+Key features: database-per-tenant multi-tenancy (stancl/tenancy), subdomain identification, per-domain app name, language and auth features, Laravel Fortify authentication with two-factor and passkeys, Spatie roles and permissions, queued user invitations, global maintenance mode and workspace suspension, 17 languages, database-driven menus, sidebar or header layouts, Pest tests, Larastan, Pint and Laravel Boost.
+
+## Product
+
+- [Laravel Vue SaaS Starter Kit](https://saas-laravel.com/kits/vue.html): Laravel SaaS starter kit with Vue 3.5, Inertia v3 and TypeScript: database-per-tenant multi-tenancy, auth, roles and permissions. $29 one-time, weekly updates.
+- [Laravel React SaaS Starter Kit](https://saas-laravel.com/kits/react.html): Laravel SaaS starter kit with React 19, Inertia v3 and TypeScript: database-per-tenant multi-tenancy, auth, roles and permissions. $30 one-time, weekly updates.
+- [Laravel Svelte SaaS Starter Kit](https://saas-laravel.com/kits/svelte.html): Laravel SaaS starter kit with Svelte 5, Inertia v3 and TypeScript: database-per-tenant multi-tenancy, auth, roles and permissions. $33 one-time, weekly updates.
+- [Laravel SaaS Starter Kit Pricing](https://saas-laravel.com/pricing.html): Laravel SaaS starter kits: Vue $29, React $30 or Svelte $33, or all three for $79. One-time payment with lifetime access and weekly updates, no subscription.
+- [Vue Starter Kit Pricing ($29 One-Time)](https://saas-laravel.com/pricing/vue.html): Get the Laravel Vue SaaS starter kit for a one-time $29 payment: full source code, lifetime repository access and weekly updates. No recurring subscription.
+- [React Starter Kit Pricing ($30 One-Time)](https://saas-laravel.com/pricing/react.html): Get the Laravel React SaaS starter kit for a one-time $30 payment: full source code, lifetime repository access and weekly updates. No recurring subscription.
+- [Svelte Starter Kit Pricing ($33 One-Time)](https://saas-laravel.com/pricing/svelte.html): Get the Laravel Svelte SaaS starter kit for a one-time $33 payment: full source code, lifetime repository access and weekly updates. No recurring subscription.
+- [All Laravel Starter Kits Bundle ($79)](https://saas-laravel.com/pricing/all-kits.html): Get the Vue, React and Svelte Laravel SaaS starter kits together for a one-time $79 and save $13. Lifetime access to all three repositories and weekly updates.
+- [How to Buy a Laravel SaaS Starter Kit](https://saas-laravel.com/how-to-pay.html): Buy a SaaS Laravel starter kit with a one-time GitHub Sponsors payment. Your GitHub account gets repository access automatically, with lifetime updates.
+
+## Getting Started
+
+- [SaaS Laravel Documentation](https://saas-laravel.com/docs.html): Documentation for the SaaS Laravel starter kits: a multi-tenant Laravel 13 and Inertia v3 backend shared by the Vue, React and Svelte editions.
+- [Requirements for Laravel SaaS Starter Kits](https://saas-laravel.com/docs/getting-started/requirements.html): What you need to run a SaaS Laravel starter kit: PHP 8.3+, Composer 2, Node.js LTS, MySQL for per-tenant databases and a local server with wildcard subdomains.
+- [Install a Laravel SaaS Starter Kit](https://saas-laravel.com/docs/getting-started/installation.html): Clone your SaaS Laravel kit repository, configure .env and run composer setup to install dependencies, generate the key, migrate and build frontend assets.
+- [Run a Laravel SaaS Kit Locally](https://saas-laravel.com/docs/getting-started/local-development.html): First run of a SaaS Laravel kit step by step: environment, database, seeding, composer dev, the queue worker, creating tenants, generated files and tests.
+- [Laravel SaaS Project Structure](https://saas-laravel.com/docs/getting-started/project-structure.html): Folder layout of a SaaS Laravel kit: app, Modules, config, database, lang, resources/js and tests, plus how each module groups its code by layer.
+- [Laravel SaaS Kit Configuration](https://saas-laravel.com/docs/getting-started/configuration.html): The .env keys and config files that control tenancy, authentication, permissions, translations and queues in the SaaS Laravel starter kits.
+
+## Core
+
+- [Laravel Multi-Tenant App Architecture](https://saas-laravel.com/docs/core/architecture.html): How a request flows through the kits: modules, central vs tenant context, middleware, Data objects, services, repositories and shared Inertia props.
+- [Laravel Fortify Auth with 2FA & Passkeys](https://saas-laravel.com/docs/core/authentication.html): Fortify-based authentication with separate central and tenant guards, two-factor codes, passkeys and per-domain toggles for each sign-in feature.
+- [Laravel Users, Roles & Permissions](https://saas-laravel.com/docs/core/users-roles-permissions.html): User management, queued invitations, system and custom roles, config-driven Spatie permissions and permission checks on routes, menus and buttons.
+- [Laravel Database-per-Tenant Multi-Tenancy](https://saas-laravel.com/docs/core/multi-tenancy.html): Database-per-tenant multi-tenancy with stancl/tenancy: identification by domain, the tenant creation pipeline, workspace status and admin invitations.
+- [Tenant Domains & Per-Domain Settings](https://saas-laravel.com/docs/core/domains.html): Tenant subdomains, primary and secondary domains, and per-domain settings: app name, default language and which authentication features are enabled.
+- [Tenant Maintenance Mode & Suspension](https://saas-laravel.com/docs/core/maintenance-and-suspension.html): Put every tenant workspace into maintenance with a bypass link and IP allow list, or suspend a single workspace, while the central app stays online.
+- [Laravel Localization in 17 Languages](https://saas-laravel.com/docs/core/localization.html): 17 languages with one translation file per feature, per-user and per-domain language, translated validation messages and frontend translation helpers.
+- [Database Menus & App Layouts](https://saas-laravel.com/docs/core/navigation-and-layouts.html): Database-driven menus with permission checks and drag-and-drop ordering, sidebar or header layouts, sign-in layouts and light or dark appearance.
+- [Central & Tenant Databases](https://saas-laravel.com/docs/core/database.html): Central and tenant databases in the kits: migrations, seeders, tenant database naming, what drops a tenant database and the key tables in each.
+- [Testing with Pest, Larastan & Pint](https://saas-laravel.com/docs/core/testing.html): The Pest test suite, Larastan static analysis, Pint and frontend linting, the composer test pipeline and the AI agent rules about tests in the kits.
+
+## Starter Kits
+
+- [Vue Starter Kit Documentation](https://saas-laravel.com/docs/vue.html): Overview and installation of the Vue 3.5 edition of SaaS Laravel: tech stack, conventions, getting the code and next steps with Inertia v3 and shadcn-vue.
+- [Vue Kit Frontend Architecture](https://saas-laravel.com/docs/vue/architecture.html): How resources/js is organised in the Vue kit: folder map, page and layout resolution, shared props, permission checks and translations with Inertia.
+- [Vue Kit Components (shadcn-vue)](https://saas-laravel.com/docs/vue/components.html): Common form components, the confirm dialog, shadcn-vue primitives, icons, toasts and app shell components in the Vue kit, with a small usage example.
+- [Vue Kit Pages & Routes](https://saas-laravel.com/docs/vue/pages.html): Every Inertia page in the Vue kit with its route, access rules, layout and purpose, from sign-in and settings pages to tenants, users and setup.
+- [Vue Kit Layouts](https://saas-laravel.com/docs/vue/layouts.html): How the Vue kit picks app and sign-in layouts from Setup defaults and user settings, the sidebar and header layouts, and per-page layout overrides.
+- [Inertia v3 with Vue](https://saas-laravel.com/docs/vue/inertia.html): Inertia v3 patterns in the Vue kit: how pages receive data, the Form component, useForm, visits, shared props, flash toasts and typed Wayfinder routes.
+- [Vue Kit Development Workflow](https://saas-laravel.com/docs/vue/development.html): Daily commands for the Vue kit and step-by-step guides to adding a page and a form, plus type checking with vue-tsc and linting with ESLint and Prettier.
+- [React Starter Kit Documentation](https://saas-laravel.com/docs/react.html): Overview and installation of the React 19 edition of SaaS Laravel: tech stack, conventions, getting the code and next steps with Inertia v3 and shadcn/ui.
+- [React Kit Frontend Architecture](https://saas-laravel.com/docs/react/architecture.html): How resources/js is organised in the React kit: folder map, page and layout resolution, shared props, permission checks and translations with Inertia.
+- [React Kit Components (shadcn/ui)](https://saas-laravel.com/docs/react/components.html): Common form components, the confirm dialog, shadcn/ui primitives, icons, toasts and app shell components in the React kit, with a small usage example.
+- [React Kit Pages & Routes](https://saas-laravel.com/docs/react/pages.html): Every Inertia page in the React kit with its route, access rules, layout and purpose, from sign-in and settings pages to tenants, users and setup.
+- [React Kit Layouts](https://saas-laravel.com/docs/react/layouts.html): How the React kit picks app and sign-in layouts from Setup defaults and user settings, the sidebar and header layouts, and per-page layout overrides.
+- [Inertia v3 with React](https://saas-laravel.com/docs/react/inertia.html): Inertia v3 patterns in the React kit: how pages receive data, the Form component, useForm, visits, shared props, flash toasts and typed Wayfinder routes.
+- [React Kit Development Workflow](https://saas-laravel.com/docs/react/development.html): Daily commands for the React kit and step-by-step guides to adding a page and a form, plus type checking with tsc and linting with ESLint and Prettier.
+- [Svelte Starter Kit Documentation](https://saas-laravel.com/docs/svelte.html): Overview and installation of the Svelte 5 edition of SaaS Laravel: tech stack, conventions, getting the code and next steps with Inertia v3 and shadcn-svelte.
+- [Svelte Kit Frontend Architecture](https://saas-laravel.com/docs/svelte/architecture.html): How resources/js is organised in the Svelte kit: folder map, page and layout resolution, shared props, permission checks and translations with Inertia.
+- [Svelte Kit Components (shadcn-svelte)](https://saas-laravel.com/docs/svelte/components.html): Common form components, the confirm dialog, shadcn-svelte primitives, icons, toasts and app shell components in the Svelte kit, with a small usage example.
+- [Svelte Kit Pages & Routes](https://saas-laravel.com/docs/svelte/pages.html): Every Inertia page in the Svelte kit with its route, access rules, layout and purpose, from sign-in and settings pages to tenants, users and setup.
+- [Svelte Kit Layouts](https://saas-laravel.com/docs/svelte/layouts.html): How the Svelte kit picks app and sign-in layouts from Setup defaults and user settings, the sidebar and header layouts, and per-page layout overrides.
+- [Inertia v3 with Svelte](https://saas-laravel.com/docs/svelte/inertia.html): Inertia v3 patterns in the Svelte kit: how pages receive data, the Form component, useForm, visits, shared props, flash toasts and typed Wayfinder routes.
+- [Svelte Kit Development Workflow](https://saas-laravel.com/docs/svelte/development.html): Daily commands for the Svelte kit and step-by-step guides to adding a page and a form, plus type checking with svelte-check and linting with ESLint and Prettier.
+
+## Purchase
+
+- [Starter Kit Repository Access](https://saas-laravel.com/docs/purchase/repository-access.html): How your GitHub account is invited to the starter kit repository after a GitHub Sponsors payment, and how to clone the private repository.
+- [Weekly Starter Kit Updates](https://saas-laravel.com/docs/purchase/updates.html): Weekly updates are pushed to your kit repository. Set the kit as your upstream remote and merge updates into your own project when you are ready.
+
+## Reference
+
+- [Composer, npm & Artisan Commands](https://saas-laravel.com/docs/reference/commands.html): Composer scripts, npm scripts and Artisan commands available in every SaaS Laravel kit, including setup, the dev server, tests, linting and generators.
+- [Environment Variables (.env) Reference](https://saas-laravel.com/docs/reference/environment.html): Every relevant .env key with its default from .env.example, what it controls in the kits, the differences between kits and a production checklist.
+- [Composer & npm Packages Used](https://saas-laravel.com/docs/reference/packages.html): The key Composer and npm packages used by the kits, with their version constraints and what each one is used for in the backend and frontend.
+- [Troubleshooting Laravel SaaS Kits](https://saas-laravel.com/docs/reference/troubleshooting.html): Fixes for common problems: Vite manifest errors, tenant subdomains, queued emails, stale translations or types, tenant database clashes and 403 errors.
+- [SaaS Laravel Starter Kits FAQ](https://saas-laravel.com/docs/reference/faq.html): Answers to common questions about the SaaS Laravel starter kits: kit differences, features, pricing, repository access, updates and development.
+
+## Optional
+
+- [Full documentation in one file](https://saas-laravel.com/llms-full.txt)
+- [Sitemap](https://saas-laravel.com/sitemap.xml)
