@@ -82,7 +82,7 @@ Page titles and descriptions live in each page's frontmatter.
 
 ## Deployment
 
-The built site is published to the `gh-pages` branch and served by GitHub Pages on the custom domain `saas-laravel.com` (see `public/CNAME`).
+Every push to `main` runs the **Deploy Docs** workflow (`.github/workflows/deploy-docs.yml`), which builds the site with VitePress and deploys it to GitHub Pages on the custom domain `saas-laravel.com` (see `public/CNAME`).
 
 ## Contributing
 
