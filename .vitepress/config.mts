@@ -75,6 +75,7 @@ const docsSidebar: DefaultTheme.SidebarItem[] = [
 
 export default defineConfig({
   lang: 'en-US',
+  srcExclude: ['README.md'],
   title: site.name,
   titleTemplate: `:title | ${site.name}`,
   description: site.description,
