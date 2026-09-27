@@ -27,7 +27,9 @@ head:
 New features, improvements and fixes for the SaaS Laravel starter kits. Updates are pushed to your kit repository every week — see [Updates](/docs/purchase/updates) for how to pull them into your project.
 
 <!--
-Add new releases at the top, newest first. Use this format:
+Kit changes are collected under "## Unreleased" at the top (see rule 6 in AGENTS.md).
+When you publish a release, rename "Unreleased" to the version and add the date line.
+Releases are listed newest first in this format:
 
 ## v1.2.0 <Badge type="info" text="All kits" />
 

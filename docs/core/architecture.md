@@ -37,6 +37,39 @@ Request
   → Inertia page, or redirect with a toast
 ```
 
+## Why a module-based structure
+
+A SaaS application gets complicated fast: tenants, domains, authentication, roles and permissions, invitations, settings, menus and maintenance all live in one codebase. In a default Laravel app, all of that ends up mixed together in `app/Http/Controllers`, `app/Models` and `app/Services`, and it gets harder to find, understand and change with every feature.
+
+The kits split the backend into **modules** instead. Each module holds everything for one feature — its routes, controllers, Data objects, services, repositories, enums and jobs — in a single folder under `Modules/`.
+
+| Benefit | What it means for your project |
+| --- | --- |
+| **Readable** | Everything about a feature is in one folder. To understand tenants, open `Modules/Tenant`. |
+| **Well structured** | Every module uses the same layout (`Data`, `Enums`, `Http`, `Services`, `Repositories`, `routes`), so the project stays predictable as it grows. |
+| **Safe to change** | Changes to a module stay inside that module and don't ripple through the rest of the app. |
+| **Easy to extend** | Add your own feature — for example `Modules/Billing` — as a new module without touching the existing ones. |
+| **Easy to work on in a team** | Different people can work on different modules with fewer conflicts. |
+
+### How modules depend on each other
+
+Modules are kept **loosely coupled**:
+
+- Most modules are fully independent. `Auth`, `Dashboard`, `RolePermission` and `Settings` don't use any other module.
+- When a module does need another one, it only uses that module's **services, enums and Data objects** — never its database tables or internal details.
+- Dependencies point **one way only**, towards the two foundation modules `RolePermission` and `Settings`. Those never depend on feature modules, so there are no circular dependencies.
+
+```text
+Auth, Dashboard, RolePermission, Settings   →  no module dependencies
+Menu                                        →  Settings (layout settings)
+Tenant                                      →  RolePermission (tenant admin role), Settings (languages)
+User                                        →  RolePermission (roles and permissions)
+```
+
+::: tip Adding your own module
+Keep it self-contained: its own routes, Data objects, services and service provider. If it needs something from another module, call that module's service instead of querying its tables directly, and never make `RolePermission` or `Settings` depend on your module.
+:::
+
 ## Modules
 
 Every feature lives in its own module under `Modules/<Module>/` (PSR-4 namespace `Modules\`). A module owns its routes, controllers, Data objects, services and enums, and registers them through its service provider.

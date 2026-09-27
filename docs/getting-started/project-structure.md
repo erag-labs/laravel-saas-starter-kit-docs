@@ -26,7 +26,7 @@ head:
 
 ## Kit layout
 
-A kit is a standard Laravel app with one addition: features live in `Modules/` instead of being spread across `app/`. React and Svelte have the same backend folders as Vue; only `resources/js` differs (see the framework guides: [Vue](/docs/vue/architecture), [React](/docs/react/architecture), [Svelte](/docs/svelte/architecture)).
+A kit is a standard Laravel app with one addition: features live in `Modules/` instead of being spread across `app/`. Why? See [Architecture → Why a module-based structure](/docs/core/architecture#why-a-module-based-structure). React and Svelte have the same backend folders as Vue; only `resources/js` differs (see the framework guides: [Vue](/docs/vue/architecture), [React](/docs/react/architecture), [Svelte](/docs/svelte/architecture)).
 
 | Folder | What lives there |
 | --- | --- |
