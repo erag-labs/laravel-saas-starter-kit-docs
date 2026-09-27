@@ -1,0 +1,43 @@
+# SaaS Laravel — https://saas-laravel.com
+# Search engines and AI agents are welcome to crawl and index this site.
+
+User-agent: *
+Allow: /
+
+# Search engines
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: Applebot
+User-agent: YandexBot
+User-agent: Baiduspider
+Allow: /
+
+# AI agents, assistants and answer engines
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: Applebot-Extended
+User-agent: Amazonbot
+User-agent: meta-externalagent
+User-agent: Meta-ExternalFetcher
+User-agent: cohere-ai
+User-agent: MistralAI-User
+User-agent: DuckAssistBot
+User-agent: YouBot
+User-agent: CCBot
+Allow: /
+
+# AI-readable summaries of the site
+# https://saas-laravel.com/llms.txt
+# https://saas-laravel.com/llms-full.txt
+
+Sitemap: https://saas-laravel.com/sitemap.xml
