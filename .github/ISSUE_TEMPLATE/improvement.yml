@@ -1,0 +1,24 @@
+name: Improvement or new guide
+description: Suggest a new page, a better example or a clearer explanation.
+title: "[Improvement]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The task or question the documentation doesn't cover well.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help?
+      description: A new guide, an example, a diagram, or changes to an existing page.
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Related page (optional)
+      placeholder: https://saas-laravel.com/docs/core/localization.html

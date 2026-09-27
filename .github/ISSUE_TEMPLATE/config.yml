@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://saas-laravel.com/docs.html
+    about: Read the SaaS Laravel documentation before opening an issue.
+  - name: Buying a starter kit
+    url: https://saas-laravel.com/how-to-pay.html
+    about: Pricing, payment and repository access questions.
+  - name: Report a security vulnerability
+    url: https://github.com/erag-technologies/laravel-saas-starter-kit-docs/security/advisories/new
+    about: Do not open a public issue. Use Security → Report a vulnerability, or email erag.office@gmail.com.

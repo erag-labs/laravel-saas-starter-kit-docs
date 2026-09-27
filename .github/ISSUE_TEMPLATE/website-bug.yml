@@ -1,0 +1,40 @@
+name: Website bug
+description: Something on saas-laravel.com looks broken or doesn't work.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+      placeholder: https://saas-laravel.com/pricing.html
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Describe the problem. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 128 on macOS, Safari on iPhone 15
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Colour mode
+      options:
+        - Light
+        - Dark
+        - Not sure

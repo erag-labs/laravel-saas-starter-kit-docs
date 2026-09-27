@@ -1,0 +1,45 @@
+name: Documentation issue
+description: Report a typo, broken link, outdated step or unclear explanation.
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve the documentation.
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+      description: The page with the problem.
+      placeholder: https://saas-laravel.com/docs/core/multi-tenancy.html
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of problem
+      options:
+        - Typo or grammar
+        - Broken link
+        - Outdated or incorrect information
+        - Unclear explanation
+        - Missing information
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What is wrong?
+      description: Quote the text if possible, and explain what should change.
+    validations:
+      required: true
+  - type: dropdown
+    id: kit
+    attributes:
+      label: Starter kit
+      description: Which kit does this relate to?
+      options:
+        - All kits / not kit-specific
+        - Vue
+        - React
+        - Svelte
