@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { formatPrice, frameworkKeys, kits } from '../../site';
+import { frameworkKeys, kits, type FrameworkKey } from '../../site';
 import FrameworkLogo from './FrameworkLogo.vue';
 import SectionHeading from './SectionHeading.vue';
 import SlIcon from './SlIcon.vue';
 
 withDefaults(defineProps<{ heading?: boolean }>(), { heading: true });
+
+const versions: Record<FrameworkKey, string> = { vue: 'Vue 3.5', react: 'React 19', svelte: 'Svelte 5' };
 </script>
 
 <template>
@@ -20,7 +22,7 @@ withDefaults(defineProps<{ heading?: boolean }>(), { heading: true });
         <article v-for="key in frameworkKeys" :key="key" class="sl-card card" :class="`card--${key}`">
           <div class="card-top">
             <span class="card-logo"><FrameworkLogo :name="key" :size="30" /></span>
-            <span class="card-price">{{ formatPrice(kits[key].price) }}<small> one-time</small></span>
+            <span class="card-version">{{ versions[key] }} · Inertia v3</span>
           </div>
           <h3 class="sl-h3">{{ kits[key].title }}</h3>
           <p class="sl-text">{{ kits[key].tagline }}</p>
@@ -100,16 +102,14 @@ withDefaults(defineProps<{ heading?: boolean }>(), { heading: true });
   background: var(--sl-surface-muted);
 }
 
-.card-price {
-  font-size: 22px;
-  font-weight: 750;
-  color: var(--vp-c-text-1);
-}
-
-.card-price small {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--vp-c-text-3);
+.card-version {
+  padding: 4px 12px;
+  border: 1px solid var(--sl-border);
+  border-radius: 999px;
+  background: var(--sl-surface-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vp-c-text-2);
 }
 
 .card-list {

@@ -111,6 +111,10 @@ const savings = computed(() => planKits.value.reduce((total, kit) => total + kit
               <a :href="kit.repo" target="_blank" rel="noopener">{{ kit.repo.replace('https://', '') }}</a>
             </li>
           </ul>
+          <p class="sl-text license-note">
+            Licensed under the <a class="sl-link" href="/license.html">SaaS Laravel Commercial License</a> — use it in unlimited
+            projects for you or your clients; reselling or publishing the source code is not allowed.
+          </p>
         </section>
 
         <section class="block">
@@ -180,6 +184,11 @@ const savings = computed(() => planKits.value.reduce((total, kit) => total + kit
 </template>
 
 <style scoped>
+.license-note {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
 .detail-hero {
   position: relative;
   padding: 48px 0 56px;

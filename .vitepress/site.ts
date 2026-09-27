@@ -386,6 +386,11 @@ export const paymentFaqs: { question: string; answer: string }[] = [
     answer: `Yes. The All Starter Kits bundle includes Vue, React and Svelte for ${formatPrice(site.bundlePrice)} — ${formatPrice(bundleSavings)} less than buying them separately.`,
   },
   {
+    question: 'Can I use a kit for client projects?',
+    answer:
+      'Yes. The SaaS Laravel Commercial License lets you build unlimited projects for yourself or your clients. You may not resell, share or publish the kit source code.',
+  },
+  {
     question: 'Where do I get support?',
     answer: 'On GitHub. Open an issue on the kit repository you have access to.',
   },

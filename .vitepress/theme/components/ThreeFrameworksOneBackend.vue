@@ -9,7 +9,7 @@ const sharedProps = ['auth', 'locale', 'languages', 'menus', 'layout', 'flash'];
 </script>
 
 <template>
-  <section class="sl-section sl-section--muted">
+  <section id="starter-kits" class="sl-section sl-section--muted">
     <div class="sl-container">
       <SectionHeading
         eyebrow="Architecture"

@@ -37,17 +37,14 @@ const included = computed(() => [
       <div class="sl-container kit-hero-inner">
         <div class="kit-copy sl-reveal">
           <nav class="kit-crumbs" aria-label="Breadcrumb">
-            <a href="/">Home</a><span>/</span><a href=".html#starter-kits">Starter Kits</a><span>/</span>{{ kit.name }}
+            <a href="/">Home</a><span>/</span><a href="/#starter-kits">Starter Kits</a><span>/</span>{{ kit.name }}
           </nav>
           <span class="kit-logo"><FrameworkLogo :name="framework" :size="40" /></span>
           <h1 class="sl-h1">{{ kit.title }}</h1>
           <p class="sl-lead">{{ kit.summary }}</p>
-          <p class="kit-price">
-            <b>{{ formatPrice(kit.price) }}</b> one-time · {{ site.accessNote }}
-          </p>
           <div class="sl-actions">
-            <a class="sl-btn sl-btn--primary sl-btn--lg" :href="`/pricing/${framework}.html`">
-              Get the {{ kit.name }} kit <span class="vpi-arrow-right" />
+            <a class="sl-btn sl-btn--primary sl-btn--lg" href="#features">
+              Explore features <span class="vpi-arrow-right" />
             </a>
             <a class="sl-btn sl-btn--secondary sl-btn--lg" :href="`/docs/${framework}.html`">Read the {{ kit.name }} docs</a>
           </div>
@@ -68,6 +65,7 @@ const included = computed(() => [
     </section>
 
     <FeatureGrid
+      id="features"
       eyebrow="Features"
       title="Everything included in the kit"
       :lead="`Every backend feature ships with a complete ${kit.name} interface — pages, dialogs, forms and toasts.`"
@@ -218,16 +216,7 @@ index.url()</code></pre>
   box-shadow: var(--sl-shadow);
 }
 
-.kit-price {
-  margin: 24px 0 28px;
-  font-size: 15px;
-  color: var(--vp-c-text-2);
-}
 
-.kit-price b {
-  font-size: 20px;
-  color: var(--vp-c-text-1);
-}
 
 .kit-stack {
   padding: 28px;

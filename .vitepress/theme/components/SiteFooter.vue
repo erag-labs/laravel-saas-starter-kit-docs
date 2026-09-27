@@ -26,6 +26,8 @@ const columns: { title: string; links: { text: string; href: string; external?: 
     links: [
       { text: 'GitHub', href: site.githubProfile, external: true },
       { text: 'Updates', href: '/docs/purchase/updates.html' },
+      { text: 'License', href: '/license.html' },
+      { text: 'Privacy Policy', href: '/privacy-policy.html' },
     ],
   },
 ];

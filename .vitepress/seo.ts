@@ -315,6 +315,8 @@ export const writeLlmsFiles = async (srcDir: string, outDir: string, docsSidebar
     '/pricing',
     ...(['vue', 'react', 'svelte', 'all-kits'] as PlanKey[]).map((key) => plans[key].href.replace(/\.html$/, '')),
     '/how-to-pay',
+    '/license',
+    '/privacy-policy',
   ];
 
   const summary: string[] = [

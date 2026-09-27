@@ -34,8 +34,6 @@ head:
 
 <TechStack />
 
-<FrameworkCards />
-
 <AppOutOfTheBox />
 
 <WhySection />

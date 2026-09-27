@@ -25,8 +25,8 @@ const highlights = ['Multi-tenancy', 'Auth & passkeys', 'Roles & permissions', '
           localization — built on one shared backend with a Vue, React or Svelte frontend.
         </p>
         <div class="sl-actions hero-actions">
-          <a class="sl-btn sl-btn--primary sl-btn--lg" href="#starter-kits">
-            View Starter Kits <span class="vpi-arrow-right" />
+          <a class="sl-btn sl-btn--primary sl-btn--lg" href="#features">
+            Explore Features <span class="vpi-arrow-right" />
           </a>
           <a class="sl-btn sl-btn--secondary sl-btn--lg" href="/docs.html">Read Documentation</a>
         </div>
