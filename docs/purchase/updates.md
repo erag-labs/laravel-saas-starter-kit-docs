@@ -34,6 +34,7 @@ Weekly updates → your kit repository (main) → your upstream/main → merge i
 
 - Every update is pushed to your kit repository (`saas-laravel-starter-kit-vue`, `-react` or `-svelte`).
 - Updates are published weekly. Your kit repository's `main` branch always has the latest version.
+- See what changed in each update on the [Release Notes](/releases) page.
 - To get notified, watch the repository on GitHub (**Watch → Custom → Releases/All activity**).
 
 ## Recommended remote setup

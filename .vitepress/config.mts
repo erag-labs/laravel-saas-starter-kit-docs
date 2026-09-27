@@ -59,6 +59,7 @@ const docsSidebar: DefaultTheme.SidebarItem[] = [
       { text: 'How to Pay', link: '/how-to-pay' },
       { text: 'Repository Access', link: '/docs/purchase/repository-access' },
       { text: 'Updates', link: '/docs/purchase/updates' },
+      { text: 'Release Notes', link: '/releases' },
     ],
   },
   {
