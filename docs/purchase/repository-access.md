@@ -58,6 +58,8 @@ If the invitation does not arrive, open an issue or contact the maintainer throu
 
 ## Clone the repository
 
+<PrivateRepoNotice />
+
 ::: code-group
 
 ```bash [Vue]

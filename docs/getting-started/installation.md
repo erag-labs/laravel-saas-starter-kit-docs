@@ -65,6 +65,8 @@ git remote add origin git@github.com:your-org/my-saas.git
 ```
 :::
 
+<PrivateRepoNotice />
+
 ## 3. Install and configure
 
 ```bash

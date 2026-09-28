@@ -41,6 +41,8 @@ Weekly updates → your kit repository (main) → your upstream/main → merge i
 
 Keep the kit as `upstream` and your own repository as `origin`:
 
+<PrivateRepoNotice />
+
 | Remote | Points to |
 | --- | --- |
 | `origin` | Your project, e.g. `git@github.com:your-org/my-saas.git` |

@@ -6,6 +6,7 @@ import CustomizeEverything from './components/CustomizeEverything.vue';
 import DeveloperExperience from './components/DeveloperExperience.vue';
 import LayoutPlayground from './components/LayoutPlayground.vue';
 import PaymentGateway from './components/PaymentGateway.vue';
+import PrivateRepoNotice from './components/PrivateRepoNotice.vue';
 import TestimonialsSection from './components/TestimonialsSection.vue';
 import FaqList from './components/FaqList.vue';
 import FeatureGrid from './components/FeatureGrid.vue';
@@ -40,6 +41,7 @@ export default {
     app.component('DeveloperExperience', DeveloperExperience);
     app.component('LayoutPlayground', LayoutPlayground);
     app.component('PaymentGateway', PaymentGateway);
+    app.component('PrivateRepoNotice', PrivateRepoNotice);
     app.component('TestimonialsSection', TestimonialsSection);
     app.component('WeeklyUpdates', WeeklyUpdates);
     app.component('PricingSection', PricingSection);
