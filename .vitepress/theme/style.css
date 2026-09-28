@@ -554,3 +554,27 @@
   font-size: 13px;
   color: var(--vp-c-text-2);
 }
+
+@media (min-width: 960px) {
+  .blog-page .VPDoc:not(.has-sidebar) .container {
+    max-width: 1200px !important;
+  }
+
+  .blog-page .VPDoc:not(.has-sidebar) .content {
+    max-width: 880px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .blog-page .VPDoc:not(.has-sidebar) .container {
+    max-width: 1280px !important;
+  }
+
+  .blog-page .VPDoc:not(.has-sidebar) .content {
+    max-width: 920px !important;
+  }
+}
+
+.blog-page .VPDoc.has-aside .content-container {
+  max-width: 840px !important;
+}

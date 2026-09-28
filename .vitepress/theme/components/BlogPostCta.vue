@@ -6,7 +6,7 @@ withDefaults(defineProps<{ title?: string; text?: string }>(), {
 </script>
 
 <template>
-  <aside class="post-cta">
+  <aside class="post-cta vp-raw">
     <p class="post-cta-title">{{ title }}</p>
     <p class="post-cta-text">{{ text }}</p>
     <div class="post-cta-actions">
@@ -48,5 +48,9 @@ withDefaults(defineProps<{ title?: string; text?: string }>(), {
 
 .post-cta-actions a {
   text-decoration: none;
+}
+
+.post-cta-actions .sl-btn--primary {
+  color: #fff;
 }
 </style>
