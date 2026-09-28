@@ -98,6 +98,8 @@ export default defineConfig({
     ['meta', { name: 'author', content: site.name }],
     ['meta', { name: 'format-detection', content: 'telephone=no' }],
     ['meta', { property: 'og:site_name', content: site.name }],
+    ['meta', { name: 'twitter:site', content: site.social.xHandle }],
+    ['meta', { name: 'twitter:creator', content: site.social.xHandle }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
   ],
   transformHead({ pageData, title, description, content }): HeadConfig[] {
@@ -121,7 +123,11 @@ export default defineConfig({
       { text: 'Local Development', link: '/docs/getting-started/local-development' },
       { text: 'How to Pay', link: '/how-to-pay' },
     ],
-    socialLinks: [{ icon: 'github', link: site.githubProfile, ariaLabel: 'SaaS Laravel on GitHub' }],
+    socialLinks: [
+      { icon: 'github', link: site.social.github, ariaLabel: 'SaaS Laravel on GitHub' },
+      { icon: 'linkedin', link: site.social.linkedin, ariaLabel: 'ERAG on LinkedIn' },
+      { icon: 'x', link: site.social.x, ariaLabel: 'ERAG on X' },
+    ],
     sidebar: {
       '/docs': docsSidebar,
     },

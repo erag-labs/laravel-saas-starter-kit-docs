@@ -43,7 +43,7 @@ Details: [Requirements](/docs/getting-started/requirements).
 ## 1. Clone and install PHP dependencies
 
 ```bash
-git clone https://github.com/erag-technologies/saas-laravel-starter-kit-vue.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git my-saas
 cd my-saas
 composer install
 ```

@@ -44,7 +44,7 @@ Keep the kit as `upstream` and your own repository as `origin`:
 | Remote | Points to |
 | --- | --- |
 | `origin` | Your project, e.g. `git@github.com:your-org/my-saas.git` |
-| `upstream` | The kit, e.g. `https://github.com/erag-technologies/saas-laravel-starter-kit-vue.git` |
+| `upstream` | The kit, e.g. `https://github.com/erag-labs/saas-laravel-starter-kit-vue.git` |
 
 ::: code-group
 
@@ -55,7 +55,7 @@ git push -u origin main
 ```
 
 ```bash [Started from a copy]
-git remote add upstream https://github.com/erag-technologies/saas-laravel-starter-kit-vue.git
+git remote add upstream https://github.com/erag-labs/saas-laravel-starter-kit-vue.git
 git fetch upstream
 git merge upstream/main --allow-unrelated-histories
 ```

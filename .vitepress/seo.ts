@@ -71,7 +71,9 @@ const organization = (): JsonLd => ({
   name: site.name,
   url: `${site.url}/`,
   logo: { '@type': 'ImageObject', url: `${site.url}/icon-512.png`, width: 512, height: 512 },
-  sameAs: [site.githubProfile],
+  sameAs: [site.social.github, site.social.linkedin, site.social.x],
+  email: site.company.email,
+  parentOrganization: { '@type': 'Organization', name: site.company.name, url: site.company.url },
 });
 
 const website = (): JsonLd => ({

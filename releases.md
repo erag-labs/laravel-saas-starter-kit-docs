@@ -41,6 +41,7 @@ Releases are listed newest first in this format:
 Badges: text="All kits" (type="info") or text="Vue" / "React" / "Svelte" (type="tip").
 -->
 
-::: info No releases yet
-The first release notes will appear here soon.
-:::
+## Unreleased <Badge type="info" text="All kits" />
+
+- Changed: the kit repositories moved to the `erag-labs` GitHub organization. Update your upstream remote, for example `git remote set-url upstream https://github.com/erag-labs/saas-laravel-starter-kit-vue.git` (use `-react` or `-svelte` for the other kits).
+- Changed: the SaaS Laravel Commercial License now names ERAG as the copyright holder.

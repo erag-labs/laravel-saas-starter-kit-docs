@@ -26,7 +26,7 @@ head:
 
 # SaaS Laravel Commercial License
 
-**Version 1.0** · Copyright © 2026 ERAG Technologies. All rights reserved.
+**Version 1.0** · Copyright © 2026 ERAG. All rights reserved.
 
 The SaaS Laravel starter kits are commercial software. When you buy a kit you get a license to use it — you do not buy the code itself. This page explains what that license allows.
 
@@ -71,7 +71,7 @@ Short excerpts of the documentation may be quoted with a link back to [saas-lara
 
 ## 4. Ownership
 
-ERAG Technologies keeps all rights, title and ownership of the Software. You own the code you write yourself on top of the Software.
+ERAG keeps all rights, title and ownership of the Software. You own the code you write yourself on top of the Software.
 
 ## 5. Third-party components
 
@@ -87,11 +87,11 @@ The Software is provided "as is", without warranty of any kind, express or impli
 
 ## 8. Limitation of liability
 
-In no event shall ERAG Technologies be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the Software or the use or other dealings in the Software. Any liability is limited to the amount you paid for the Software.
+In no event shall ERAG be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the Software or the use or other dealings in the Software. Any liability is limited to the amount you paid for the Software.
 
 ## 9. Website and documentation
 
-The content of this website and its documentation is © ERAG Technologies, all rights reserved. You may link to it and quote short excerpts with a link back to the original page.
+The content of this website and its documentation is © ERAG, all rights reserved. You may link to it and quote short excerpts with a link back to the original page.
 
 ## 10. Questions
 

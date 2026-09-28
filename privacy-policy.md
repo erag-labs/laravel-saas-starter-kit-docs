@@ -28,7 +28,7 @@ head:
 
 **Effective date:** 27 September 2026
 
-This policy explains what information SaaS Laravel ("we", "us") collects when you visit [saas-laravel.com](https://saas-laravel.com) or buy a starter kit, and how we use it. SaaS Laravel is run by ERAG Technologies.
+This policy explains what information SaaS Laravel ("we", "us") collects when you visit [saas-laravel.com](https://saas-laravel.com) or buy a starter kit, and how we use it. SaaS Laravel is run by [ERAG](https://erag.in).
 
 ## At a glance
 

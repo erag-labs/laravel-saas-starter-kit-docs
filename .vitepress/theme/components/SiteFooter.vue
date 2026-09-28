@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { site } from '../../site';
-import SlIcon from './SlIcon.vue';
+import SlIcon, { type IconName } from './SlIcon.vue';
 
 const columns: { title: string; links: { text: string; href: string; external?: boolean }[] }[] = [
   {
@@ -34,6 +34,14 @@ const columns: { title: string; links: { text: string; href: string; external?: 
 ];
 
 const year = new Date().getFullYear();
+
+const social: { icon: IconName; label: string; href: string; external: boolean }[] = [
+  { icon: 'globe', label: 'ERAG website', href: site.company.url, external: true },
+  { icon: 'github', label: 'SaaS Laravel on GitHub', href: site.social.github, external: true },
+  { icon: 'linkedin', label: 'ERAG on LinkedIn', href: site.social.linkedin, external: true },
+  { icon: 'x', label: 'ERAG on X', href: site.social.x, external: true },
+  { icon: 'mail', label: 'Email ERAG', href: `mailto:${site.company.email}`, external: false },
+];
 </script>
 
 <template>
@@ -57,8 +65,12 @@ const year = new Date().getFullYear();
       </nav>
     </div>
     <div class="sl-container footer-bottom">
-      <span>© {{ year }} {{ site.name }}</span>
-      <a :href="site.githubProfile" target="_blank" rel="noopener"><SlIcon name="github" :size="20" /><span class="sl-sr-only">SaaS Laravel on GitHub</span></a>
+      <span>© {{ year }} <a class="footer-company" :href="site.company.url" target="_blank" rel="noopener">{{ site.company.name }}</a>. All rights reserved.</span>
+      <div class="footer-social">
+        <a v-for="item in social" :key="item.label" :href="item.href" :target="item.external ? '_blank' : undefined" :rel="item.external ? 'noopener' : undefined">
+          <SlIcon :name="item.icon" :size="18" /><span class="sl-sr-only">{{ item.label }}</span>
+        </a>
+      </div>
     </div>
     <div class="footer-wordmark" aria-hidden="true">{{ site.name }}</div>
   </footer>
@@ -153,6 +165,17 @@ const year = new Date().getFullYear();
 .footer-bottom a {
   display: flex;
   color: var(--vp-c-text-2);
+}
+
+.footer-company {
+  display: inline !important;
+  font-weight: 600;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .footer-bottom a:hover {

@@ -34,7 +34,7 @@ export interface Plan {
   featured: boolean;
 }
 
-const githubOwner = 'https://github.com/erag-technologies';
+const githubOwner = 'https://github.com/erag-labs';
 
 export const prices = { vue: 29, react: 30, svelte: 33, bundle: 79 } as const;
 
@@ -53,6 +53,13 @@ export const site = {
   themeColor: '#4f46e5',
   sponsorUrl: 'https://github.com/sponsors/eramitgupta',
   githubProfile: githubOwner,
+  company: { name: 'ERAG', url: 'https://erag.in', email: 'erag.office@gmail.com' },
+  social: {
+    github: githubOwner,
+    linkedin: 'https://www.linkedin.com/company/erag-labs',
+    x: 'https://x.com/erag_labs',
+    xHandle: '@erag_labs',
+  },
   docsEditPattern: `${githubOwner}/laravel-saas-starter-kit-docs/edit/main/:path`,
   bundlePrice: prices.bundle,
   kitPriceFrom: Math.min(prices.vue, prices.react, prices.svelte),

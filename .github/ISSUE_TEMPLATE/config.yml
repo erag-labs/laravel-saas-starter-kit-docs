@@ -7,5 +7,5 @@ contact_links:
     url: https://saas-laravel.com/how-to-pay.html
     about: Pricing, payment and repository access questions.
   - name: Report a security vulnerability
-    url: https://github.com/erag-technologies/laravel-saas-starter-kit-docs/security/advisories/new
+    url: https://github.com/erag-labs/laravel-saas-starter-kit-docs/security/advisories/new
     about: Do not open a public issue. Use Security → Report a vulnerability, or email erag.office@gmail.com.

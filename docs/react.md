@@ -70,10 +70,10 @@ Laravel route → Controller → Service → Inertia::render('tenants/index') �
 
 ## Get the code
 
-After purchase you get access to the private repository `erag-technologies/saas-laravel-starter-kit-react` (see [Repository access](/docs/purchase/repository-access)).
+After purchase you get access to the private repository `erag-labs/saas-laravel-starter-kit-react` (see [Repository access](/docs/purchase/repository-access)).
 
 ```bash
-git clone https://github.com/erag-technologies/saas-laravel-starter-kit-react.git
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git
 cd saas-laravel-starter-kit-react
 ```
 
