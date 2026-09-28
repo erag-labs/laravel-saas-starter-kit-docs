@@ -207,6 +207,12 @@ const structuredData = (pageData: PageData, url: string, title: string, descript
       },
       breadcrumbs([home, { name: 'Blog', url: `${site.url}/blog.html` }, { name: pageTitle, url }]),
     );
+
+    const faqs = faqFromContent(content);
+
+    if (faqs.length) {
+      graph.push(faqPage(faqs));
+    }
   } else if (path === 'docs.md' || path.startsWith('docs/')) {
     const section = path.split('/')[1]?.replace(/\.md$/, '');
     const trail = [home, { name: 'Documentation', url: `${site.url}/docs.html` }];

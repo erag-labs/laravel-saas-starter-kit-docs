@@ -50,7 +50,12 @@ withDefaults(defineProps<{ title?: string; text?: string }>(), {
   text-decoration: none;
 }
 
-.post-cta-actions .sl-btn--primary {
-  color: #fff;
+.post-cta-actions .sl-btn--primary,
+.post-cta-actions .sl-btn--primary:hover {
+  color: #fff !important;
+}
+
+.post-cta-actions .sl-btn--secondary {
+  color: var(--vp-c-text-1) !important;
 }
 </style>
