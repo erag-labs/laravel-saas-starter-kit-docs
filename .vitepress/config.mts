@@ -122,6 +122,7 @@ export default defineConfig({
       { text: 'Pricing', link: '/pricing', activeMatch: '^/pricing($|/)' },
       { text: 'Local Development', link: '/docs/getting-started/local-development' },
       { text: 'How to Pay', link: '/how-to-pay' },
+      { text: 'Blog', link: '/blog', activeMatch: '^/blog($|/)' },
     ],
     socialLinks: [
       { icon: 'github', link: site.social.github, ariaLabel: 'SaaS Laravel on GitHub' },

@@ -1,4 +1,4 @@
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { DefaultTheme, HeadConfig, PageData } from 'vitepress';
 import { frameworkKeys, kitPriceList, kits, paymentFaqs, plans, site, type FrameworkKey, type PlanKey } from './site';
@@ -184,6 +184,29 @@ const structuredData = (pageData: PageData, url: string, title: string, descript
     );
   } else if (path === 'how-to-pay.md') {
     graph.push(faqPage(paymentFaqs), breadcrumbs([home, { name: 'How to Pay', url }]));
+  } else if (path === 'blog.md') {
+    graph.push({ '@type': 'Blog', name: pageTitle, description, url, publisher: { '@id': organizationId } }, breadcrumbs([home, { name: 'Blog', url }]));
+  } else if (path.startsWith('blog/')) {
+    const published = new Date(pageData.frontmatter.date).toISOString();
+
+    graph.push(
+      {
+        '@type': 'BlogPosting',
+        headline: pageTitle,
+        description,
+        url,
+        mainEntityOfPage: url,
+        image: ogImageFor(path),
+        inLanguage: 'en-US',
+        datePublished: published,
+        dateModified: pageData.lastUpdated ? new Date(pageData.lastUpdated).toISOString() : published,
+        keywords: (pageData.frontmatter.tags ?? []).join(', '),
+        author: { '@type': 'Organization', name: site.company.name, url: site.company.url },
+        publisher: { '@id': organizationId },
+        isPartOf: { '@id': websiteId },
+      },
+      breadcrumbs([home, { name: 'Blog', url: `${site.url}/blog.html` }, { name: pageTitle, url }]),
+    );
   } else if (path === 'docs.md' || path.startsWith('docs/')) {
     const section = path.split('/')[1]?.replace(/\.md$/, '');
     const trail = [home, { name: 'Documentation', url: `${site.url}/docs.html` }];
@@ -240,7 +263,8 @@ export const seoHead = (pageData: PageData, title: string, description: string, 
   const url = pageUrl(pageData.relativePath);
   const image = ogImageFor(pageData.relativePath);
   const imageAlt = pageData.title || title;
-  const isDocs = pageData.relativePath.startsWith('docs/') || pageData.relativePath === 'docs.md';
+  const isDocs =
+    pageData.relativePath.startsWith('docs/') || pageData.relativePath === 'docs.md' || pageData.relativePath.startsWith('blog/');
   const graph = structuredData(pageData, url, title, description, content);
 
   const head: HeadConfig[] = [
@@ -318,6 +342,7 @@ export const writeLlmsFiles = async (srcDir: string, outDir: string, docsSidebar
     ...(['vue', 'react', 'svelte', 'all-kits'] as PlanKey[]).map((key) => plans[key].href.replace(/\.html$/, '')),
     '/how-to-pay',
     '/releases',
+    '/blog',
     '/license',
     '/privacy-policy',
   ];
@@ -338,6 +363,17 @@ export const writeLlmsFiles = async (srcDir: string, outDir: string, docsSidebar
   for (const link of marketing) {
     const page = await describe(link);
     summary.push(`- [${page.title}](${site.url}${link}.html): ${page.description}`);
+  }
+
+  const blogFiles = (await readdir(join(srcDir, 'blog'))).filter((file) => file.endsWith('.md')).sort();
+
+  if (blogFiles.length) {
+    summary.push('', '## Blog', '');
+
+    for (const file of blogFiles) {
+      const page = await describe(`/blog/${file.replace(/\.md$/, '')}`);
+      summary.push(`- [${page.title}](${site.url}/blog/${file.replace(/\.md$/, '.html')}): ${page.description}`);
+    }
   }
 
   const full: string[] = [`# ${site.name} — full documentation`, '', `> ${site.description}`, '', `Source: ${site.url}/`, ''];

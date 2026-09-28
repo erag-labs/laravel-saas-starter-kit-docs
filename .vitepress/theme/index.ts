@@ -1,5 +1,8 @@
 import type { Theme } from 'vitepress';
 import DefaultTheme from 'vitepress/theme';
+import BlogIndex from './components/BlogIndex.vue';
+import BlogPostCta from './components/BlogPostCta.vue';
+import BlogPostMeta from './components/BlogPostMeta.vue';
 import CTASection from './components/CTASection.vue';
 import AppOutOfTheBox from './components/AppOutOfTheBox.vue';
 import CustomizeEverything from './components/CustomizeEverything.vue';
@@ -30,6 +33,9 @@ export default {
   Layout,
   enhanceApp({ app }) {
     app.component('HeroSection', HeroSection);
+    app.component('BlogIndex', BlogIndex);
+    app.component('BlogPostMeta', BlogPostMeta);
+    app.component('BlogPostCta', BlogPostCta);
     app.component('TechStack', TechStack);
     app.component('FrameworkCards', FrameworkCards);
     app.component('WhySection', WhySection);
