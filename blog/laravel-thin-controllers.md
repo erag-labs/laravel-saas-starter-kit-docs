@@ -27,13 +27,13 @@ head:
       content: "How to write Laravel thin controllers: the four jobs a controller has, Form Requests, authorization attributes, clean responses and a fat controller refactor."
 ---
 
-# Laravel Thin Controllers: Small, Readable Controller Methods
+# Laravel Thin Controllers: Keeping Controller Methods Small and Readable
 
 <BlogPostMeta />
 
-Most Laravel apps start with tidy controllers and end up with 80-line `store()` methods that validate, authorize, query, send emails and build responses all at once. **Laravel thin controllers** fix that by giving the controller one narrow job: translate an HTTP request into a call to your application, and translate the result back into a response.
+Most Laravel apps start out with tidy controllers and end up with 80-line `store()` methods that validate, authorize, query, send emails and build responses all at once. **Laravel thin controllers** fix that by giving the controller one narrow job: turn an HTTP request into a call to your application, then turn the result back into a response.
 
-This guide covers the four things a controller should do, the signs a controller has grown too fat, a step-by-step refactor, how to get the most out of Form Requests and authorization, and what is allowed to stay in the controller.
+Below we look at the four things a controller should do, how to tell when one has grown too fat, a refactor from start to finish, how to get more out of Form Requests and authorization, and what's allowed to stay in the controller.
 
 ## What Laravel thin controllers do
 
@@ -41,24 +41,20 @@ A thin controller method does four things, in this order:
 
 | Step | Question it answers | Where the work happens |
 | --- | --- | --- |
-| **Authorize** | May this user do this? | Route middleware, controller attributes or `FormRequest::authorize()` |
-| **Validate** | Is the input acceptable? | A Form Request (or a Data object) |
-| **Delegate** | Do the actual work | A service or action class |
-| **Respond** | What does the user see next? | The controller itself |
+| Authorize | May this user do this? | Route middleware, controller attributes or `FormRequest::authorize()` |
+| Validate | Is the input acceptable? | A Form Request (or a Data object) |
+| Delegate | Do the actual work | A service or action class |
+| Respond | What does the user see next? | The controller itself |
 
-Only the last step is written in the method body. The first two happen before your code runs, and the third is a single method call. The result is a method you can read in five seconds.
+Only the last step is written in the method body. The first two happen before your code runs, and the third is a single method call. What's left is a method you can read in five seconds.
 
 ## Signs your controller is too fat
 
-Use this checklist on your biggest controller. Each "yes" is something to move out:
+Open your biggest controller and go through these questions. Every "yes" points at something to move out.
 
-- It calls `$request->validate()` with more than a couple of rules.
-- It contains `DB::transaction()` or several `create()`/`update()` calls in a row.
-- It sends mail, dispatches jobs or calls an external API.
-- It builds a query with more than one or two conditions.
-- The same logic also exists in a job, command or another controller.
-- It has private helper methods that aren't about building responses.
-- You can't test the business rule without making an HTTP request.
+Does it call `$request->validate()` with more than a couple of rules? Does it contain `DB::transaction()`, or several `create()`/`update()` calls in a row? Does it send mail, dispatch jobs or call an external API? Does it build a query with more than one or two conditions?
+
+Then look beyond the method itself. If the same logic also exists in a job, a command or another controller, it needs a shared home. Private helper methods that aren't about building responses are another giveaway. And if you can't test a business rule without making an HTTP request, that rule is in the wrong place.
 
 ## Refactoring a fat controller, step by step
 
@@ -82,17 +78,25 @@ public function store(Request $request)
 }
 ```
 
-It works, but four concerns are mixed together. Let's pull them apart.
+It works. The problem is that four concerns are tangled together, so we'll pull them apart one at a time.
 
-**1. Move validation into a Form Request.** Run `php artisan make:request StoreTicketRequest` and move the rules into its `rules()` method. Type-hinting the request validates it before the method runs.
+### 1. Move validation into a Form Request
 
-**2. Move authorization out of the body.** Use a Form Request's `authorize()` method, a `can:` route middleware or, in Laravel 13, an attribute on the method (shown below).
+Run `php artisan make:request StoreTicketRequest` and move the rules into its `rules()` method. Once you type-hint the request, Laravel validates it before the method runs.
 
-**3. Move the work into a service.** The transaction and the notification are business logic. They belong in `TicketService::open()`, where a queued job or an email-to-ticket importer can reuse them. The [Laravel service layer guide](/blog/laravel-service-layer-pattern.html) covers what goes inside that class.
+### 2. Move authorization out of the body
 
-**4. Keep the response.** Choosing the redirect and the flash message is the controller's job.
+You have three options here: a Form Request's `authorize()` method, a `can:` route middleware or, in Laravel 13, an attribute on the method (shown below).
 
-The result:
+### 3. Move the work into a service
+
+The transaction and the notification are business logic. They belong in `TicketService::open()`, where a queued job or an email-to-ticket importer can reuse them. Our [guide to the Laravel service layer](/blog/laravel-service-layer-pattern.html) covers what goes inside that class.
+
+### 4. Keep the response
+
+Picking the redirect and the flash message is the controller's job, so that part stays.
+
+Here's where we end up:
 
 ```php
 #[Authorize('create', Ticket::class)]
@@ -104,11 +108,11 @@ public function store(StoreTicketRequest $request, TicketService $tickets): Redi
 }
 ```
 
-Same behaviour, but each piece now lives where you'd look for it.
+The behaviour hasn't changed. Each piece just lives where you'd go looking for it.
 
 ## Form Requests do more than hold rules
 
-A Form Request is the controller's best tool for staying thin. Beyond `rules()`, it has hooks that remove more code from the method:
+For keeping a controller thin, the Form Request is the most useful tool you have. Beyond `rules()`, it offers hooks that take even more code out of the method:
 
 | Method | Use it for |
 | --- | --- |
@@ -118,19 +122,17 @@ A Form Request is the controller's best tool for staying thin. Beyond `rules()`,
 | `prepareForValidation()` | Normalising input first, such as trimming a slug or lowercasing an email |
 | `after()` | Extra checks after the normal rules have passed |
 
-In the controller, `$request->validated()` returns only validated fields, `$request->validated('subject')` returns one of them, and `$request->safe()->only(['subject'])` returns a subset. Never pass `$request->all()` to a model — it includes fields you didn't validate.
+Inside the controller, `$request->validated()` returns only the validated fields, `$request->validated('subject')` returns a single one, and `$request->safe()->only(['subject'])` returns a subset. **Never pass `$request->all()` to a model**, because it includes fields you didn't validate.
 
-If several requests share rules (a profile form and a registration form both validate `email`), put the rules in a trait and use it in both classes instead of copying them.
+When several requests share rules (say a profile form and a registration form both validate `email`), we put those rules in a trait and use it in both classes rather than copying them.
 
-An alternative to Form Requests is a typed Data object that validates itself. The trade-offs are covered in [Laravel Data objects with spatie/laravel-data](/blog/laravel-data-objects.html).
+The alternative to Form Requests is a typed Data object that validates itself. We compare the two approaches in [Laravel Data objects with spatie/laravel-data](/blog/laravel-data-objects.html).
 
 ## Authorization outside the method body
 
-Authorization checks inside the method are easy to forget on the next action you add. Put them where they apply automatically:
+An authorization check inside the method is easy to forget on the next action you add. We'd rather put checks somewhere they apply automatically.
 
-- **Route middleware.** `->middleware('can:update,ticket')` on the route, or a package middleware such as `permission:Edit Tickets` from spatie/laravel-permission.
-- **Controller attributes (Laravel 13).** `#[Middleware]` and `#[Authorize]` can be placed on the class or on a method. Class-level attributes accept `only` and `except`.
-- **Form Request `authorize()`.** Useful when the check depends on the input itself.
+Route middleware is the most familiar option: `->middleware('can:update,ticket')` on the route, or a package middleware such as `permission:Edit Tickets` from spatie/laravel-permission. Laravel 13 adds controller attributes, `#[Middleware]` and `#[Authorize]`, which you can place on the class or on a single method. Class-level attributes accept `only` and `except`. The Form Request's `authorize()` is still handy when the check depends on the input itself.
 
 ```php
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -149,16 +151,15 @@ class TicketController extends Controller
 
 The second argument of `#[Authorize]` names the route parameter (`ticket`), so the policy receives the bound model.
 
-## What is allowed to stay in the controller
+## What can stay in the controller
 
-Thin doesn't mean empty. These are HTTP concerns, and they belong in the controller:
+Thin doesn't mean empty. Some things are HTTP concerns, and they belong in the controller.
 
-- **Reading query-string filters** like `search`, `status` or `sort`, and passing them to a service or query.
-- **Choosing the response:** which Inertia page to render, which props to send, where to redirect.
-- **Flash messages and toasts** after a successful action.
-- **Request-specific guards** such as "you can't delete your own account", which return an error to the form rather than throwing deep inside a service.
+Reading query-string filters like `search`, `status` or `sort` and passing them on to a service or query is one. Choosing the response is another: which Inertia page to render, which props to send, where to redirect. Flash messages and toasts after a successful action live here too.
 
-A typical index method stays readable even with filters:
+So do request-specific guards, such as "you can't delete your own account". Those should return an error to the form rather than throw from deep inside a service.
+
+Even with filters, a typical index method stays readable:
 
 ```php
 public function index(Request $request, TicketService $tickets): Response
@@ -174,12 +175,13 @@ public function index(Request $request, TicketService $tickets): Response
 
 ## Resource and single-action controllers
 
-Two conventions keep controllers from growing sideways:
+Controllers can also grow sideways, collecting more and more actions. Two conventions help.
 
-- **Stick to the resource methods.** `index`, `create`, `store`, `show`, `edit`, `update` and `destroy` cover most screens. When you need `approve` or `archive`, consider a small dedicated controller, such as `TicketArchiveController`.
-- **Use single-action controllers for one-off endpoints.** `php artisan make:controller CloseTicketController --invokable` creates a class with just `__invoke()`, which you register with `Route::post('tickets/{ticket}/close', CloseTicketController::class)`.
+First, stick to the resource methods. `index`, `create`, `store`, `show`, `edit`, `update` and `destroy` cover most screens. When you need `approve` or `archive`, consider a small dedicated controller such as `TicketArchiveController`.
 
-Constructor or method injection both work for services. Method injection keeps each action's dependencies visible; constructor injection avoids repeating the same service in every method.
+Second, use single-action controllers for one-off endpoints. `php artisan make:controller CloseTicketController --invokable` creates a class with only `__invoke()`, which you register with `Route::post('tickets/{ticket}/close', CloseTicketController::class)`.
+
+Services can be injected through the constructor or the method, and both work. Method injection keeps each action's dependencies visible, while constructor injection saves you repeating the same service in every method. We lean towards method injection when a controller's actions use different services, and the constructor when they all share one.
 
 ## Frequently asked questions
 
@@ -189,18 +191,18 @@ There's no official limit, but most thin controller methods fit in 5 to 15 lines
 
 ### Is it wrong to use Eloquent directly in a controller?
 
-Not for simple reads. `Ticket::latest()->paginate()` in an index method is perfectly clear. Move queries out when they grow conditions, get reused, or mix with writes and side effects.
+Not for simple reads. `Ticket::latest()->paginate()` in an index method is perfectly clear. Move a query out once it grows conditions, gets reused, or gets mixed up with writes and side effects.
 
 ### Where should flash messages be set?
 
-In the controller, after the service call succeeds. The message describes what the user sees next, which is a response concern — a service shouldn't know that a toast exists.
+In the controller, after the service call succeeds. The message describes what the user sees next, which makes it a response concern. A service shouldn't even know that toasts exist.
 
 ### Do thin controllers make testing easier?
 
-Yes. The business logic can be tested by calling the service directly, while feature tests only need to check authorization, validation and the response.
+Yes. You can test the business logic by calling the service directly, and your feature tests only need to check authorization, validation and the response.
 
 ## Thin controllers in SaaS Laravel
 
-The SaaS Laravel kits follow this shape across their modules. A typical method such as `TenantController::store()` receives a validated Data object, calls `TenantService`, flashes a toast with `Inertia::flash()` and redirects. Smaller forms use Form Requests like `PasswordUpdateRequest`, authorization is applied with `permission:` route middleware, and shared validation rules live in traits such as `ProfileValidationRules`. The [architecture documentation](/docs/core/architecture.html) describes each layer, and the [modular Laravel architecture guide](/blog/modular-laravel-architecture.html) shows how the modules are organised.
+The SaaS Laravel kits follow this shape across their modules. A typical method such as `TenantController::store()` receives a validated Data object, calls `TenantService`, flashes a toast with `Inertia::flash()` and redirects. Smaller forms use Form Requests like `PasswordUpdateRequest`, authorization comes from `permission:` route middleware, and shared validation rules live in traits such as `ProfileValidationRules`. The [architecture documentation](/docs/core/architecture.html) describes each layer, and our [modular Laravel architecture guide](/blog/modular-laravel-architecture.html) shows how the modules are organised.
 
 <BlogPostCta title="Controllers that stay small" text="SaaS Laravel ships feature modules with thin controllers, services and typed Data objects, plus multi-tenancy, authentication and permissions, in Vue, React or Svelte." />

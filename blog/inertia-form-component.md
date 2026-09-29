@@ -31,15 +31,15 @@ head:
 
 <BlogPostMeta />
 
-Most forms in a Laravel app do the same thing: send some fields, show validation errors, disable the button while saving. The **Inertia Form component** handles all of that with a plain HTML form. You give inputs a `name`, and Inertia collects the values, submits them as an Inertia visit and hands the errors back. This guide covers how it works in Vue, React and Svelte, the props and slot values you will actually use, edit forms, file uploads, and when `useForm` is still the better tool.
+Most forms in a Laravel app do the same job. Send some fields, show the validation errors, disable the button while it saves. The **Inertia Form component** does all of that with a plain HTML form. You give each input a `name`, and Inertia collects the values, submits them as an Inertia visit and hands the errors back. I'll go through how it works in Vue, React and Svelte, the props and slot values you'll actually use, edit forms, file uploads, and when I still reach for `useForm`.
 
-Examples use Inertia v3. If you are upgrading, [what's new in Inertia v3](/blog/inertia-js-v3-whats-new.html) lists the changes.
+The examples use Inertia v3. If you're upgrading, the changes are listed in [what's new in Inertia v3](/blog/inertia-js-v3-whats-new.html).
 
 ## What the Inertia Form component does
 
-`Form` renders a normal `form` element. On submit it reads every named input inside it, builds the request data, and sends it with the Inertia router. When Laravel responds with a redirect and validation errors, the errors land in the component's `errors` slot value, keyed by field name. There is no `v-model`, no state object and no `preventDefault()`.
+`Form` renders a normal `form` element. When it's submitted, it reads every named input inside, builds the request data and sends it through the Inertia router. If Laravel answers with a redirect and validation errors, those errors end up in the component's `errors` slot value, keyed by field name. You don't write `v-model`, you don't keep a state object, and you don't call `preventDefault()`.
 
-The server side stays ordinary Laravel: validate, save, redirect.
+On the server it's ordinary Laravel. Validate, save, redirect.
 
 ```php
 public function store(StoreUserRequest $request, UserService $users): RedirectResponse
@@ -50,11 +50,11 @@ public function store(StoreUserRequest $request, UserService $users): RedirectRe
 }
 ```
 
-Validation lives in the Form Request and the saving in a service, so the controller stays a few lines long.
+The Form Request does the validation and the service does the saving, so the controller is a few lines long. That's how I like controllers to look.
 
 ## A first form in Vue, React and Svelte
 
-The API is the same in all three adapters. Only the way you read the slot values changes: a scoped slot in Vue, a render function in React and a snippet in Svelte.
+The API is identical across the three adapters. What changes is how you read the slot values: Vue uses a scoped slot, React a render function and Svelte a snippet.
 
 ::: code-group
 
@@ -96,11 +96,11 @@ The API is the same in all three adapters. Only the way you read the slot values
 
 :::
 
-`action` also accepts a route object from Laravel Wayfinder, so you don't hard-code URLs. That setup is explained in [typed routes with Laravel Wayfinder](/blog/laravel-wayfinder-typed-routes.html).
+`action` also takes a route object from Laravel Wayfinder, so you don't have to hard-code URLs. I explain that setup in [typed routes with Laravel Wayfinder](/blog/laravel-wayfinder-typed-routes.html).
 
 ## How field names become request data
 
-Because the component reads the DOM, the `name` attribute decides the shape of the data Laravel receives:
+The component reads the DOM, so the `name` attribute decides what shape of data Laravel gets:
 
 | Input name | Data sent |
 | --- | --- |
@@ -110,9 +110,9 @@ Because the component reads the DOM, the `name` attribute decides the shape of t
 | `report[tags][]` | `{ report: { tags: [...] } }` |
 | `app\.name` | `{ 'app.name': '...' }` (escaped dot) |
 
-Nested errors come back in dot notation, so the error for `user.name` is `errors['user.name']`.
+Nested errors come back in dot notation. The error for `user.name` is `errors['user.name']`.
 
-Give checkboxes an explicit `value`. Without it the browser sends the string `"on"`, which rarely matches a `boolean` or `in:` rule.
+One small trap: give checkboxes an explicit `value`. Without one, the browser sends the string `"on"`, and that rarely matches a `boolean` or `in:` rule.
 
 ## Slot values: state and methods
 
@@ -128,7 +128,7 @@ Give checkboxes an explicit `value`. Without it the browser sends the string `"o
 | `clearErrors()`, `setError()` | Manage errors on the client |
 | `defaults()` | Make the current values the new defaults |
 
-The same values are exposed on a template ref (Vue) or a ref (React), so a parent can call `submit()` from a button outside the form. In Svelte the ref exposes the methods only.
+You get the same values on a template ref in Vue or a ref in React, so a parent can call `submit()` from a button that sits outside the form. Svelte's ref only exposes the methods.
 
 ## Props worth knowing
 
@@ -144,11 +144,11 @@ The same values are exposed on a template ref (Vue) or a ref (React), so a paren
 | `showProgress` | Turn the progress bar off for small background saves |
 | `optimistic` | Update page props before the server answers (new in v3) |
 
-In Vue templates these are kebab-case: `reset-on-success`, `set-defaults-on-success`.
+In Vue templates you write these in kebab-case: `reset-on-success`, `set-defaults-on-success`. If you only learn two from this table, make it `resetOnSuccess` and `setDefaultsOnSuccess`. Those two are what login and settings forms need.
 
 ## Edit forms: default values and dirty state
 
-For an edit form, set initial values the uncontrolled way. React and Vue use `defaultValue` (and `defaultChecked`), Svelte uses `value` and `checked`. Add `setDefaultsOnSuccess` and use `isDirty` to show Save and Discard buttons only when something changed:
+For an edit form, set the initial values the uncontrolled way. React and Vue use `defaultValue` (and `defaultChecked`), while Svelte uses `value` and `checked`. Then add `setDefaultsOnSuccess` and use `isDirty`, so the Save and Discard buttons only show up once something has changed:
 
 ```vue
 <Form
@@ -164,11 +164,13 @@ For an edit form, set initial values the uncontrolled way. React and Vue use `de
 </Form>
 ```
 
-A native HTML form only supports GET and POST, but `Form` submits through Inertia, so `method="patch"` works. Wayfinder's `.form()` variant takes the other route: it posts and spoofs the method with Laravel's `_method` field.
+A native HTML form only supports GET and POST. `Form` submits through Inertia, though, so `method="patch"` just works. Wayfinder's `.form()` variant goes the other way: it posts and spoofs the method with Laravel's `_method` field.
 
 ## File uploads and progress
 
-Add a file input and the component sends the data as `FormData` on its own. Show `progress` while the upload runs. For an upload on an update route, submit with POST and spoof PUT or PATCH through `_method`, because PHP only parses multipart bodies on POST requests.
+Add a file input and the component switches to sending `FormData` by itself. Show `progress` while the upload runs.
+
+The part people usually get wrong is uploads on an update route. Submit with POST and spoof PUT or PATCH through `_method`, because PHP only parses multipart bodies on POST requests.
 
 ```vue
 <Form action="/avatar" method="post" v-slot="{ progress, errors }">
@@ -181,7 +183,7 @@ Add a file input and the component sends the data as `FormData` on its own. Show
 
 ## Events
 
-`Form` fires the usual visit callbacks: before, start, progress, success, error, finish and cancel. Vue listens with `@success` and `@error`. React and Svelte use `onSuccess` and `onError` props. A common case is closing a modal after a save:
+`Form` fires the usual visit callbacks: before, start, progress, success, error, finish and cancel. In Vue you listen with `@success` and `@error`. React and Svelte take `onSuccess` and `onError` props instead. A typical use is closing a modal after a save:
 
 ```tsx
 <Form action="/roles" method="post" onSuccess={() => setOpen(false)}>
@@ -189,15 +191,15 @@ Add a file input and the component sends the data as `FormData` on its own. Show
 </Form>
 ```
 
-To tell the user it worked, flash a toast from the controller instead of wiring it into every form. See [flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html).
+To tell the user it worked, I'd flash a toast from the controller rather than wire a message into every form. The setup is in [flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html).
 
 ## Live validation with Precognition
 
-With Laravel Precognition on the route (the `precognitive` middleware), the component can validate a field before submit. Call `validate('email')` on change, then read `invalid('email')`, `valid('email')` and `validating`. Requests are debounced (1.5 seconds by default, see `validationTimeout`), and files are skipped unless you set `validateFiles`.
+When the route has Laravel Precognition on it (the `precognitive` middleware), the component can validate a field before submit. Call `validate('email')` on change, then read `invalid('email')`, `valid('email')` and `validating`. Requests are debounced, 1.5 seconds by default (see `validationTimeout`). Files are skipped unless you set `validateFiles`.
 
 ## Nested inputs with useFormContext
 
-Big forms get split into components. Instead of passing `errors` down through props, a child can call `useFormContext()` to get the parent form's state and methods. It returns `undefined` when the component is not inside a `Form`, so shared input components can work in both cases.
+Big forms end up split into components. Rather than passing `errors` down through props, a child can call `useFormContext()` to get the parent form's state and methods. It returns `undefined` when the component isn't inside a `Form`, so your shared input components can work either way.
 
 ## Form component vs useForm
 
@@ -208,28 +210,28 @@ Big forms get split into components. Instead of passing `errors` down through pr
 | Data comes straight from the fields | You build data in code or submit without a form element |
 | — | You want form state kept in history with a remember key |
 
-Both send the same Inertia visit, so the server side does not change when you switch.
+My default is `Form`. I only switch to `useForm` when one of the cases on the right actually applies. Both send the same Inertia visit, so the server side doesn't change either way.
 
 ## Frequently asked questions
 
 ### Does the Inertia Form component need v-model or useState?
 
-No. It reads values from the named inputs when you submit. You only need controlled state if something else on the page has to react to the value while the user types.
+No. It reads the values from the named inputs when you submit. You only need controlled state if something else on the page has to react to the value while the user is typing.
 
 ### How do I show a success message after submitting?
 
-Use `recentlySuccessful` for a small inline "Saved" label next to the button. For a message that should survive a redirect to another page, flash it from Laravel with `Inertia::flash()` and show it as a toast.
+For a small inline "Saved" label next to the button, use `recentlySuccessful`. If the message has to survive a redirect to another page, flash it from Laravel with `Inertia::flash()` and show it as a toast.
 
 ### Why is my checkbox sending "on"?
 
-A checkbox without a `value` attribute sends `"on"` when checked. Add `value="1"` (or any value your validation rule expects).
+A checked checkbox without a `value` attribute sends `"on"`. Add `value="1"`, or whatever value your validation rule expects.
 
 ### Can I keep two forms with the same field names on one page?
 
-Yes. Give each form its own `errorBag` so errors for `email` in one form don't show up in the other.
+Yes. Give each form its own `errorBag`, and errors for `email` in one form won't show up in the other.
 
 ## Forms in SaaS Laravel
 
-The [SaaS Laravel starter kits](/) build nearly every form with the `Form` component and a Wayfinder route object: sign-in, registration, profile, security, users, roles, tenants and domains. The profile page uses `setDefaultsOnSuccess` with `isDirty` for its Save and Discard buttons. Login clears the password with `resetOnSuccess`, and modals close in a success callback. `useForm` is kept for the layout card pickers. The patterns are listed in [Inertia v3 with Vue](/docs/vue/inertia.html), and the [Vue, React or Svelte guide](/blog/vue-react-or-svelte-laravel-saas.html) shows how the kits differ.
+If you'd like to see these patterns in a finished app, the [SaaS Laravel starter kits](/) build nearly every form with the `Form` component and a Wayfinder route object: sign-in, registration, profile, security, users, roles, tenants and domains. The profile page uses `setDefaultsOnSuccess` with `isDirty` for its Save and Discard buttons. Login clears the password with `resetOnSuccess`, and modals close in a success callback. `useForm` is only kept for the layout card pickers. The patterns are listed in [Inertia v3 with Vue](/docs/vue/inertia.html), and the [Vue, React or Svelte comparison](/blog/vue-react-or-svelte-laravel-saas.html) shows how the kits differ.
 
 <BlogPostCta title="Forms already wired to Laravel" text="SaaS Laravel kits ship auth, profile, user, role and tenant forms built with the Inertia Form component and Wayfinder, in Vue, React or Svelte." />

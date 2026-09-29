@@ -31,11 +31,11 @@ head:
 
 <BlogPostMeta />
 
-Laravel Fortify gives you every authentication route and controller you need, but no screens. That makes it a natural fit for Inertia, where the pages live in Vue, React or Svelte anyway. This **Laravel Fortify tutorial** covers installing Fortify, choosing features, rendering Inertia pages for each view, and how the login, registration and password reset flows work under the hood, including where to customise them.
+Laravel Fortify gives you every authentication route and controller you need, and not a single screen. In an Inertia app that's exactly what you want, because the pages live in Vue, React or Svelte anyway. In this Laravel Fortify tutorial we install Fortify, choose its features, render an Inertia page for each view, and walk through how login, registration and password reset actually work, including where you can customise them.
 
 ## What Fortify does and what you build
 
-Fortify is a **headless** authentication backend. It registers routes, runs validation and hashing, talks to the session guard and returns redirects or JSON. You supply the pages and a few small action classes.
+Fortify is a headless authentication backend. It registers routes, runs validation and hashing, talks to the session guard, and returns redirects or JSON. Your side of the deal is the pages plus a few small action classes.
 
 | Fortify handles | You provide |
 | --- | --- |
@@ -44,7 +44,7 @@ Fortify is a **headless** authentication backend. It registers routes, runs vali
 | Password reset tokens and emails via Laravel's password broker | The `CreateNewUser` and `ResetUserPassword` actions |
 | Events such as `Registered` and `PasswordReset` | Listeners, if you need them |
 
-Because the frontend is yours, the same Fortify setup works whether your Inertia app uses Vue, React or Svelte.
+Since the frontend is entirely yours, one Fortify setup works the same for an Inertia app built on Vue, React or Svelte.
 
 ## Laravel Fortify tutorial: installing the package
 
@@ -56,16 +56,11 @@ php artisan fortify:install
 php artisan migrate
 ```
 
-`fortify:install` publishes everything you will edit:
-
-- `config/fortify.php`: guard, password broker, features, limiters and redirects.
-- `app/Providers/FortifyServiceProvider.php`: registered in `bootstrap/providers.php` for you.
-- `app/Actions/Fortify/*`: `CreateNewUser`, `ResetUserPassword`, `UpdateUserPassword`, `UpdateUserProfileInformation` and a `PasswordValidationRules` trait.
-- Migrations for the two-factor columns on `users` and the `passkeys` table.
+`fortify:install` publishes all the files you'll end up editing. There's `config/fortify.php`, which holds the guard, password broker, features, limiters and redirects. There's `app/Providers/FortifyServiceProvider.php`, already registered in `bootstrap/providers.php` for you. Under `app/Actions/Fortify/` you get `CreateNewUser`, `ResetUserPassword`, `UpdateUserPassword`, `UpdateUserProfileInformation` and a `PasswordValidationRules` trait. And finally there are migrations for the two-factor columns on `users` and for the `passkeys` table.
 
 ## Choosing features in config/fortify.php
 
-Each entry in the `features` array switches on a group of routes. Leave one out and its routes are never registered.
+Each entry in the `features` array turns on a group of routes. If you leave one out, its routes are never registered at all.
 
 ```php
 use Laravel\Fortify\Features;
@@ -81,24 +76,20 @@ use Laravel\Fortify\Features;
 
 | Feature | What it adds | Deep dive |
 | --- | --- | --- |
-| `registration()` | `/register` page and POST | This guide |
-| `resetPasswords()` | Forgot and reset password pages and POSTs | This guide |
+| `registration()` | `/register` page and POST | This post |
+| `resetPasswords()` | Forgot and reset password pages and POSTs | This post |
 | `emailVerification()` | Verification notice, signed link and resend | [Email verification in Laravel](/blog/laravel-email-verification.html) |
 | `updateProfileInformation()` / `updatePasswords()` | PUT endpoints for profile and password changes | Optional; many apps write their own settings controllers |
 | `twoFactorAuthentication()` | TOTP setup, QR code, recovery codes and the login challenge | [Two-factor authentication in Laravel](/blog/laravel-two-factor-authentication.html) |
 | `passkeys()` | WebAuthn registration and passwordless login | [Passkeys in Laravel](/blog/laravel-passkeys.html) |
 
-Login, logout and password confirmation are always registered. A few other settings are worth a look now:
+Login, logout and password confirmation are always registered, whatever you put here.
 
-- `guard` and `passwords`: the session guard and password broker Fortify uses.
-- `username` and `email`: the field names of the login and reset forms.
-- `lowercase_usernames`: lowercases the email before login and registration.
-- `home`: the default redirect after login, registration and reset.
-- `prefix` and `domain`: move all Fortify routes under a path or a subdomain.
+While you have the file open, look at a few other settings. `guard` and `passwords` pick the session guard and password broker Fortify uses. `username` and `email` are the field names on the login and reset forms, and `lowercase_usernames` lowercases the email before login and registration. `home` is the default redirect after login, registration and reset. If you want every Fortify route under a path or a subdomain, that's what `prefix` and `domain` are for.
 
 ## Rendering Inertia pages for Fortify
 
-Fortify's GET routes (`/login`, `/register`, `/forgot-password` and so on) ask you what to render. Tell it in `FortifyServiceProvider::boot()` by returning an Inertia response:
+Fortify's GET routes (`/login`, `/register`, `/forgot-password` and so on) need you to tell them what to render. You do that in `FortifyServiceProvider::boot()` by returning an Inertia response:
 
 ```php
 use Inertia\Inertia;
@@ -115,13 +106,13 @@ Fortify::registerView(fn () => Inertia::render('auth/Register'));
 Fortify::requestPasswordResetLinkView(fn () => Inertia::render('auth/ForgotPassword'));
 ```
 
-The same pattern applies to `resetPasswordView`, `verifyEmailView`, `confirmPasswordView` and `twoFactorChallengeView`. For the reset page, pass `$request->route('token')` and `$request->email` as props so the form can post them back.
+`resetPasswordView`, `verifyEmailView`, `confirmPasswordView` and `twoFactorChallengeView` follow the same pattern. On the reset page, pass `$request->route('token')` and `$request->email` as props so the form can post them back.
 
-Passing flags like `canRegister` lets the page hide links to features you have switched off. Pass the session `status` too: Fortify flashes messages such as "We have emailed your password reset link" there.
+We'd always pass flags like `canRegister`, so the page can hide links to features you've switched off. Pass the session `status` as well. That's where Fortify flashes messages like "We have emailed your password reset link".
 
-## The Fortify login flow
+## How the Fortify login flow works
 
-The login page posts `email`, `password` and an optional `remember` to `POST /login` (route name `login.store`). With Inertia's `<Form>` component and Wayfinder, the page needs no hard-coded URLs:
+The login page posts `email`, `password` and an optional `remember` to `POST /login` (route name `login.store`). Using Inertia's `<Form>` component with Wayfinder, the page doesn't need a single hard-coded URL:
 
 ```vue
 <script setup lang="ts">
@@ -138,15 +129,15 @@ import { store } from '@/routes/login';
 </template>
 ```
 
-On the server, Fortify sends the request through a small pipeline:
+On the server, the request goes through a small pipeline:
 
-1. **Throttle.** If you name a limiter in `fortify.limiters.login`, the route uses it as `throttle` middleware. Tuning it is covered in [rate limiting login attempts in Laravel](/blog/laravel-login-rate-limiting.html).
-2. **Canonicalize.** With `lowercase_usernames` on, the email is lowercased.
-3. **Two-factor check.** If 2FA is enabled and the user has confirmed it, Fortify stores the user ID in the session and redirects to the challenge instead of logging in.
-4. **Attempt.** `Auth::guard(...)->attempt()` with the credentials and the remember flag.
-5. **Prepare the session.** The session ID is regenerated and the limiter is cleared.
+1. Throttle. If you name a limiter in `fortify.limiters.login`, the route applies it as `throttle` middleware. We cover tuning it in [rate limiting login attempts in Laravel](/blog/laravel-login-rate-limiting.html).
+2. Canonicalize. With `lowercase_usernames` on, the email is lowercased.
+3. Two-factor check. If 2FA is enabled and the user has confirmed it, Fortify puts the user ID in the session and redirects to the challenge instead of logging in.
+4. Attempt. `Auth::guard(...)->attempt()` runs with the credentials and the remember flag.
+5. Prepare the session. The session ID is regenerated and the limiter is cleared.
 
-Validation errors come back as normal Inertia errors, so `errors.email` shows "These credentials do not match our records" without extra code.
+Validation errors come back as ordinary Inertia errors, so `errors.email` shows "These credentials do not match our records" with no extra code on your part.
 
 ### Customising who may log in
 
@@ -162,11 +153,11 @@ Fortify::authenticateUsing(function (Request $request) {
 });
 ```
 
-Here `is_suspended` stands in for whatever column your app uses. For bigger changes, `Fortify::authenticateThrough()` lets you return your own list of pipeline classes.
+`is_suspended` is a stand-in for whatever column your app actually uses. If you need bigger changes, `Fortify::authenticateThrough()` lets you return your own list of pipeline classes.
 
-## Registration
+## Registration with CreateNewUser
 
-`POST /register` passes the whole request to your `CreatesNewUsers` action. The published `CreateNewUser` validates the input and creates the user:
+`POST /register` hands the whole request to your `CreatesNewUsers` action. The published `CreateNewUser` validates the input and creates the user:
 
 ```php
 public function create(array $input): User
@@ -181,9 +172,9 @@ public function create(array $input): User
 }
 ```
 
-Fortify then fires the `Registered` event, logs the new user in, regenerates the session and redirects. `Registered` is what triggers the verification email when email verification is on.
+After that, Fortify fires the `Registered` event, logs the new user in, regenerates the session and redirects. `Registered` is also what triggers the verification email when email verification is turned on.
 
-This action is the place to add fields like a company name or to assign a default role. Keep it thin: if registration grows into several steps, move the work into a service class and call it from here. What belongs in `passwordRules()`, and how Fortify's always-on password confirmation page protects sensitive screens, is covered in [Laravel password rules and confirmation](/blog/laravel-password-validation-rules.html).
+This action is where you'd add fields like a company name or assign a default role. Keep it thin, though. Once registration grows into several steps, we'd move the work into a service class and call that from here. For what belongs in `passwordRules()`, and how Fortify's always-on password confirmation page protects sensitive screens, see [Laravel password rules and confirmation](/blog/laravel-password-validation-rules.html).
 
 ## Password reset
 
@@ -196,11 +187,11 @@ The reset flow has four steps, all backed by Laravel's password broker (the one 
 | Reset page | GET `/reset-password/{token}` (`password.reset`) | Your page with token, email and new password fields |
 | Save | POST `/reset-password` (`password.update`) | Your `ResetUserPassword` action sets the new password |
 
-After a successful reset, Fortify redirects to the login page with a status message. Token lifetime and throttling come from the broker's `expire` and `throttle` settings in `config/auth.php`.
+Once the reset succeeds, Fortify redirects to the login page with a status message. Token lifetime and throttling come from the broker's `expire` and `throttle` settings in `config/auth.php`.
 
 ## Redirects and responses
 
-By default every successful action redirects to `fortify.home`. Add a `redirects` array to `config/fortify.php` to override individual cases:
+By default, every successful action redirects to `fortify.home`. To override individual cases, add a `redirects` array to `config/fortify.php`:
 
 ```php
 'redirects' => [
@@ -211,17 +202,19 @@ By default every successful action redirects to `fortify.home`. Add a `redirects
 ],
 ```
 
-`password-reset` and `password-confirmation` are accepted too. When a redirect needs logic, for example sending admins somewhere else, bind your own class to a response contract such as `Laravel\Fortify\Contracts\LoginResponse` in the container. Every built-in response also returns JSON when the request expects it, which is why Fortify works for SPAs and mobile clients too. Set `views` to `false` if you don't want the GET page routes at all.
+It accepts `password-reset` and `password-confirmation` too. When a redirect needs real logic, such as sending admins somewhere different, bind your own class to a response contract like `Laravel\Fortify\Contracts\LoginResponse` in the container.
+
+Every built-in response also returns JSON when the request expects it. That's why Fortify works for SPAs and mobile clients as well. If you don't want the GET page routes at all, set `views` to `false`.
 
 ## Frequently asked questions
 
 ### Does Laravel Fortify include login pages?
 
-No. Fortify is headless: it registers the routes and logic, and you render the pages. With Inertia you return `Inertia::render()` from callbacks like `Fortify::loginView()`.
+No. Fortify is headless: it registers the routes and the logic, and you render the pages. With Inertia, you return `Inertia::render()` from callbacks like `Fortify::loginView()`.
 
 ### Can I use Fortify with Inertia and React or Svelte instead of Vue?
 
-Yes. Fortify only sees form posts and returns redirects, validation errors or JSON. The server setup is identical for Vue, React and Svelte; only the page components differ.
+Yes. Fortify only ever sees form posts, and it answers with redirects, validation errors or JSON. The server setup is identical for Vue, React and Svelte; only the page components change.
 
 ### How do I change where users land after login?
 
@@ -229,10 +222,10 @@ Set `home` in `config/fortify.php`, or add `'redirects' => ['login' => '/somewhe
 
 ### Can Fortify handle two different user types?
 
-Fortify works with one guard at a time, set in `fortify.guard`. For separate admin and customer logins, see [separate auth guards for admins and customers](/blog/laravel-multiple-auth-guards.html).
+Fortify works with one guard at a time, set in `fortify.guard`. If you need separate admin and customer logins, read [separate auth guards for admins and customers](/blog/laravel-multiple-auth-guards.html).
 
 ## How SaaS Laravel uses Fortify
 
-In the SaaS Laravel kits, an `Auth` module connects Fortify to the app: its `AuthServiceProvider` registers the Inertia views, the `CreateNewUser` and `ResetUserPassword` actions and the `login`, `two-factor` and `passkeys` rate limiters. `config/fortify.php` enables registration, password reset, email verification, 2FA and passkeys with `home` set to `/dashboard`, while profile and password changes live in the kit's own Settings pages. On tenant domains, Fortify is pointed at a separate `tenant` guard, and each tenant domain can switch individual features off. The [authentication documentation](/docs/core/authentication.html) lists every page and file.
+If you'd rather not wire all of this up yourself, the SaaS Laravel kits have it done already. An `Auth` module connects Fortify to the app: its `AuthServiceProvider` registers the Inertia views, the `CreateNewUser` and `ResetUserPassword` actions, and the `login`, `two-factor` and `passkeys` rate limiters. `config/fortify.php` enables registration, password reset, email verification, 2FA and passkeys, with `home` set to `/dashboard`, while profile and password changes live in the kit's own Settings pages. On tenant domains, Fortify points at a separate `tenant` guard, and each tenant domain can switch individual features off. The [authentication documentation](/docs/core/authentication.html) lists every page and file.
 
 <BlogPostCta title="Fortify auth, already wired to Inertia" text="SaaS Laravel ships Fortify login, registration, password reset, email verification, 2FA and passkeys as Inertia pages in Vue, React or Svelte." />

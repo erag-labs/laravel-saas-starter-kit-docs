@@ -31,11 +31,11 @@ head:
 
 <BlogPostMeta />
 
-Most SaaS apps have two very different groups of people signing in: your own team running the platform, and the customers using it. **Laravel multiple guards** let you keep them apart, with separate tables, separate logins and separate sessions, so a customer account can never reach the admin area by accident. This guide covers when separate guards are worth it, the `config/auth.php` setup, an admin login, route protection, redirects, logout, Inertia shared props and how Fortify fits in.
+In most SaaS apps, two very different groups of people sign in: your own team, who run the platform, and the customers who use it. Laravel multiple guards let you keep those groups apart, with separate tables, separate logins and separate sessions, so a customer account can't wander into the admin area by accident. I'll go through when separate guards are worth the extra setup, the `config/auth.php` changes, an admin login, protecting routes, redirects, logout, Inertia shared props and where Fortify fits in.
 
 ## Guards, providers and password brokers
 
-Laravel's authentication config has three building blocks:
+If the auth config has always felt a bit abstract, it helps to know it's built from three pieces, each answering a different question:
 
 | Piece | Answers | Example |
 | --- | --- | --- |
@@ -43,11 +43,11 @@ Laravel's authentication config has three building blocks:
 | Provider | Where are users loaded from? | Eloquent model `App\Models\Admin` |
 | Password broker | How are reset tokens stored and checked? | Broker `admins` with its own table |
 
-A guard points at one provider. Two guards with two providers give you two independent kinds of user in the same app.
+A guard points at exactly one provider. Add a second guard with its own provider and you have two independent kinds of user living in the same app.
 
 ## When separate guards beat roles
 
-Before adding a guard, check whether a role would do. Roles on a single `users` table are simpler; guards give you a hard wall.
+Before you add a guard, ask whether a role would do the job. Roles on a single `users` table are simpler to live with. Guards give you a hard wall instead.
 
 | Choose roles when… | Choose separate guards when… |
 | --- | --- |
@@ -56,11 +56,11 @@ Before adding a guard, check whether a role would do. Roles on a single `users` 
 | The data lives in one table | The users live in different tables or databases |
 | You want one login page | You want a separate login, often on its own subdomain |
 
-Roles and permissions are covered in [Laravel roles and permissions with Spatie](/blog/laravel-roles-permissions-spatie.html). The rest of this guide assumes you want the wall.
+My rule of thumb: if you find yourself wanting one person to hop between both areas, stick with roles, which are covered in [Laravel roles and permissions with Spatie](/blog/laravel-roles-permissions-spatie.html). Everything below assumes you want the wall.
 
 ## Step 1: The admin model
 
-Create an `admins` table with the same basic columns as `users`: `name`, a unique `email`, `password`, `remember_token` and timestamps. The model extends the same base class as your user model:
+Start with an `admins` table that has the same basic columns as `users`: `name`, a unique `email`, `password`, `remember_token` and timestamps. The model extends the same base class your user model does:
 
 ```php
 namespace App\Models;
@@ -85,7 +85,7 @@ class Admin extends Authenticatable
 
 ## Step 2: Configure Laravel multiple guards in auth.php
 
-Add a guard, a provider and a password broker next to the existing `web` ones:
+Next, add a guard, a provider and a password broker alongside the existing `web` ones:
 
 ```php
 'guards' => [
@@ -104,9 +104,9 @@ Add a guard, a provider and a password broker next to the existing `web` ones:
 ],
 ```
 
-Give admins their own reset token table. The default `password_reset_tokens` table uses the email as its primary key, so a customer and an admin with the same address would overwrite each other's tokens.
+You might wonder why admins need their own reset token table. The default `password_reset_tokens` table uses the email as its primary key, so if a customer and an admin happen to share an address, they'd overwrite each other's tokens.
 
-Keep `defaults.guard` on `web`. The admin guard is opt-in, route by route.
+Leave `defaults.guard` set to `web`. The admin guard is opt-in, one route at a time.
 
 ## Step 3: An admin login
 
@@ -127,11 +127,11 @@ public function store(AdminLoginRequest $request): RedirectResponse
 }
 ```
 
-Put validation in the `AdminLoginRequest` Form Request, and put a rate limiter on the route. Admin logins are a favourite target, so see [rate limiting login attempts in Laravel](/blog/laravel-login-rate-limiting.html).
+Validation belongs in the `AdminLoginRequest` Form Request. Please also put a rate limiter on this route, since admin logins are a favourite target for attackers. The details are in [rate limiting login attempts in Laravel](/blog/laravel-login-rate-limiting.html).
 
 ## Step 4: Protect the routes
 
-The `auth` and `guest` middleware accept a guard name after a colon:
+Both the `auth` and `guest` middleware take a guard name after a colon:
 
 ```php
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -147,11 +147,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 ```
 
-When `auth:admin` passes, Laravel calls `Auth::shouldUse('admin')` for the rest of the request. From then on `$request->user()`, `Auth::user()`, policies and `@can` checks all use the admin.
+Once `auth:admin` passes, Laravel calls `Auth::shouldUse('admin')` for the rest of that request. So from that point on, `$request->user()`, `Auth::user()`, policies and `@can` checks all work with the admin.
 
 ### Send each guest to the right login page
 
-By default, a guest who hits a protected route is sent to the route named `login`. Tell Laravel which login page fits the URL in `bootstrap/app.php`:
+By default, a guest who hits a protected route gets sent to the route named `login`. That's the customer login, which is wrong for `/admin`. You can tell Laravel which login page matches the URL in `bootstrap/app.php`:
 
 ```php
 ->withMiddleware(function (Middleware $middleware): void {
@@ -165,11 +165,11 @@ By default, a guest who hits a protected route is sent to the route named `login
 })
 ```
 
-`redirectUsersTo` handles the opposite case: a signed-in admin opening the admin login page.
+`redirectUsersTo` covers the reverse situation, where an admin who's already signed in opens the admin login page.
 
 ## Reading the right user in code
 
-Outside `auth:admin` routes, the default guard is still `web`. Ask for the guard explicitly there:
+Outside `auth:admin` routes, the default guard is still `web`. In those places, ask for the guard by name:
 
 ```php
 Auth::guard('admin')->user();
@@ -179,7 +179,7 @@ Auth::guard('admin')->check();
 
 ### The Inertia shared props trap
 
-`HandleInertiaRequests` usually runs in the `web` middleware group, before route middleware such as `auth:admin`. A plain `$request->user()` in `share()` is evaluated at that moment, against the `web` guard, so admin pages receive `null`. Wrap it in a closure so it is resolved when the page renders:
+This one tends to trip people up. `HandleInertiaRequests` usually runs in the `web` middleware group, which is before route middleware like `auth:admin`. A plain `$request->user()` inside `share()` is evaluated right then, against the `web` guard, so your admin pages receive `null`. The fix is to wrap it in a closure, so it's resolved later when the page actually renders:
 
 ```php
 'auth' => [
@@ -187,52 +187,53 @@ Auth::guard('admin')->check();
 ],
 ```
 
-Only share the fields the frontend needs. An admin record often has columns a browser should never see.
+While you're there, only share the fields the frontend needs. Admin records often have columns a browser should never see.
 
 ## Logging out one guard
 
-Both guards store their login in the same session, under different keys (`login_web_…` and `login_admin_…`). That means one browser can be signed in as a customer and as an admin at the same time, and it changes how logout works:
+Both guards keep their login in the same session, just under different keys (`login_web_…` and `login_admin_…`). So one browser can be signed in as a customer and as an admin at the same time. That affects how logout behaves:
 
 | Call | Effect |
 | --- | --- |
 | `Auth::guard('admin')->logout()` | Removes only the admin login and its remember-me cookie |
 | `$request->session()->invalidate()` | Destroys the whole session, logging out **every** guard |
 
-For an admin logout that leaves the customer session alone, log out the guard, then regenerate the session ID and the CSRF token instead of invalidating. If you'd rather the two never share a session at all, serve the admin area from its own subdomain. With `SESSION_DOMAIN` unset, the session cookie is host-only, so each host gets its own session.
+To log an admin out without touching the customer session, log out the guard and then regenerate the session ID and CSRF token, rather than invalidating. If you'd prefer the two never share a session in the first place, serve the admin area from its own subdomain. With `SESSION_DOMAIN` unset, the session cookie is host-only, and each host gets its own session.
 
 ## Where Fortify fits
 
-Laravel Fortify works with **one** guard at a time. It resolves the guard from `fortify.guard`, uses the broker in `fortify.passwords`, and registers its routes with `guest:` and `auth:` middleware for that guard. There are two practical patterns:
+Laravel Fortify works with **one** guard at a time. It reads the guard from `fortify.guard`, uses the broker in `fortify.passwords`, and registers its routes with `guest:` and `auth:` middleware for that guard. In practice that leaves you two patterns.
 
-1. **Fortify for customers, a few hand-written admin controllers.** The admin area rarely needs registration, 2FA setup screens or email verification of its own, so a login, logout and password reset controller is often all you need.
-2. **One Fortify setup, guard switched per host.** A global middleware sets `fortify.guard`, `fortify.passwords` and `Auth::shouldUse()` before routing, based on the domain. Because Fortify's route middleware was registered with the boot-time guard name, the `auth` and `guest` middleware must map that name to the active guard too.
+The first is Fortify for customers plus a few hand-written admin controllers. The admin area rarely needs registration, 2FA setup screens or its own email verification, so a login, a logout and a password reset controller are often all it takes. For a typical app with internal staff, this is the one I'd pick.
 
-The second pattern suits multi-tenant apps where each context has the same features but a different user store. The [Laravel Fortify tutorial](/blog/laravel-fortify-tutorial.html) covers the rest of the Fortify setup.
+The second is a single Fortify setup where the guard switches per host. A global middleware sets `fortify.guard`, `fortify.passwords` and `Auth::shouldUse()` before routing, based on the domain. There's a catch: Fortify's route middleware was registered with the guard name from boot time, so your `auth` and `guest` middleware have to map that name to the active guard as well. This pattern suits multi-tenant apps where each context has the same features but a different user store.
+
+For the rest of the Fortify setup, see the [Laravel Fortify tutorial](/blog/laravel-fortify-tutorial.html).
 
 ### Permissions per guard
 
-If you use spatie/laravel-permission, every role and permission belongs to a guard through its `guard_name`. Create the admin permissions for the `admin` guard and pass the guard to the middleware, as explained in the Spatie guide linked above.
+With spatie/laravel-permission, every role and permission belongs to a guard through its `guard_name`. Create your admin permissions for the `admin` guard and pass the guard to the middleware, as the Spatie guide linked earlier explains.
 
 ## Frequently asked questions
 
 ### Can a user be logged in with two guards at once?
 
-Yes. Each guard stores its login under its own session key, so the same browser can hold a customer login and an admin login together. Put the admin area on a separate subdomain if you want to prevent that.
+Yes. Each guard keeps its login under its own session key, so the same browser can hold a customer login and an admin login together. If you want to prevent that, put the admin area on a separate subdomain.
 
 ### Why does auth()->user() return null on my admin pages?
 
-The code runs with the default `web` guard. Either the route is missing `auth:admin`, or the code runs before that middleware, as shared Inertia props often do. Use `Auth::guard('admin')->user()` or resolve the user lazily.
+Because the code is running with the default `web` guard. Either the route is missing `auth:admin`, or the code runs before that middleware, which is what usually happens with shared Inertia props. Use `Auth::guard('admin')->user()` or resolve the user lazily.
 
 ### Does Laravel Fortify support multiple guards?
 
-Not side by side. Fortify serves the guard set in `fortify.guard`. Use it for one group and write a small login for the other, or switch the guard per domain before the request reaches Fortify's routes.
+Not side by side. Fortify serves whichever guard is set in `fortify.guard`. You can use it for one group and write a small login for the other, or switch the guard per domain before the request reaches Fortify's routes.
 
 ### Do I need a separate model for each guard?
 
-No. Two guards can share one model when their providers load it from different places, for example a central database and a per-tenant database in a multi-tenant app. When both groups live in one database, a separate model and table is the simplest way to keep them apart.
+No. Two guards can share one model if their providers load it from different places, for example a central database and a per-tenant database in a multi-tenant app. When both groups live in the same database, though, a separate model and table is the simplest way to keep them apart.
 
 ## How SaaS Laravel separates users
 
-The SaaS Laravel kits use two session guards on the same `App\Models\User` model: `web` with the `central_users` provider for the platform, and `tenant` with the `tenant_users` provider for each customer's own database. Each guard has a matching password broker. When tenancy starts, a listener switches the default guard and Fortify's guard and broker to the tenant ones, and the kit's `auth` and `guest` middleware map `web` to `tenant` inside a tenant, so routes simply use `auth`. Platform-only routes, such as tenant management, add a `central.only` middleware that returns a 404 on tenant domains. The approach is described in the [central and tenant guards documentation](/docs/core/authentication.html#central-and-tenant-guards) and in [How to Build a Multi-Tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html).
+For a working example, the SaaS Laravel kits use two session guards on the same `App\Models\User` model: `web` with the `central_users` provider for the platform, and `tenant` with the `tenant_users` provider for each customer's own database. Each guard has its own password broker. When tenancy starts, a listener switches the default guard, plus Fortify's guard and broker, to the tenant ones. The kit's `auth` and `guest` middleware map `web` to `tenant` inside a tenant, so routes just use `auth`. Platform-only routes such as tenant management add a `central.only` middleware that returns a 404 on tenant domains. You can read more in the [central and tenant guards documentation](/docs/core/authentication.html#central-and-tenant-guards) and in [How to Build a Multi-Tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html).
 
 <BlogPostCta title="Central and tenant logins, kept apart" text="SaaS Laravel separates platform and tenant users with their own guards, providers and password brokers, on Fortify, stancl/tenancy and Inertia." />

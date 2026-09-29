@@ -31,25 +31,25 @@ head:
 
 <BlogPostMeta />
 
-Almost every SaaS app needs to answer the same question on every request: *is this user allowed to do this?* The **Laravel Spatie permission** package (`spatie/laravel-permission`) is the most common way to answer it. It stores roles and permissions in your database and plugs straight into Laravel's own authorization, so `can()`, `@can` and the `can` middleware keep working as you expect.
+Every SaaS app ends up asking the same thing on every request: *is this user allowed to do this?* For most Laravel apps, the answer comes from the Laravel Spatie permission package, `spatie/laravel-permission`. It keeps roles and permissions in your database and hooks into Laravel's own authorization, so `can()`, `@can` and the `can` middleware keep working the way you're used to.
 
-This guide covers the concepts, how to assign and check roles and permissions, how to build a super admin, how caching works, and how to show or hide buttons in an Inertia frontend. All examples use version 8 of the package.
+I'll go through the concepts, assigning and checking roles and permissions, building a super admin, how the cache behaves, and showing or hiding buttons in an Inertia frontend. Everything here uses version 8 of the package.
 
 ## Roles, permissions and guards
 
-The package has three building blocks:
+There are three building blocks:
 
 | Concept | What it is | Example |
 | --- | --- | --- |
-| **Permission** | A single thing a user may do | `Edit User`, `View Invoices` |
-| **Role** | A named group of permissions | `admin`, `manager` |
-| **Guard** | The auth guard a role or permission belongs to | `web`, `api` |
+| Permission | A single thing a user may do | `Edit User`, `View Invoices` |
+| Role | A named group of permissions | `admin`, `manager` |
+| Guard | The auth guard a role or permission belongs to | `web`, `api` |
 
-A user can get permissions **via a role**, **directly**, or both. Your code should almost always check *permissions*, not roles. "Can this user edit users?" survives a reorganization of your roles; "Is this user an admin?" does not.
+A user can get a permission through a role, directly, or both. My strong advice: **check permissions in your code, not roles**. "Can this user edit users?" still makes sense after you reorganize your roles. "Is this user an admin?" doesn't.
 
 ## Installing Laravel Spatie permission
 
-Install the package, publish its config and migration, then migrate:
+Install the package, publish its config and migration, and migrate:
 
 ```bash
 composer require spatie/laravel-permission
@@ -57,7 +57,7 @@ php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvid
 php artisan migrate
 ```
 
-The migration creates five tables: `permissions`, `roles`, `model_has_permissions`, `model_has_roles` and `role_has_permissions`. Then add the `HasRoles` trait to your user model:
+You get five tables: `permissions`, `roles`, `model_has_permissions`, `model_has_roles` and `role_has_permissions`. Next, add the `HasRoles` trait to your user model:
 
 ```php
 use Spatie\Permission\Traits\HasRoles;
@@ -68,11 +68,11 @@ class User extends Authenticatable
 }
 ```
 
-`HasRoles` also pulls in `HasPermissions`, so the user gets both sets of methods.
+`HasRoles` pulls in `HasPermissions` as well, so the user gets both sets of methods.
 
 ### Register the middleware aliases
 
-The package ships `RoleMiddleware`, `PermissionMiddleware` and `RoleOrPermissionMiddleware`, but it does not register short aliases for them. In Laravel 11 and later you add them in `bootstrap/app.php`:
+The package ships `RoleMiddleware`, `PermissionMiddleware` and `RoleOrPermissionMiddleware`, but it doesn't register short aliases for them. On Laravel 11 and later, add them in `bootstrap/app.php`:
 
 ```php
 use Spatie\Permission\Middleware\PermissionMiddleware;
@@ -88,7 +88,7 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 
 ## Creating and assigning roles and permissions
 
-Create records with the models, or use `findOrCreate()` so seeders can run more than once:
+You can create records through the models. I use `findOrCreate()` so seeders can run more than once without blowing up:
 
 ```php
 use Spatie\Permission\Models\Permission;
@@ -100,7 +100,7 @@ $admin = Role::findOrCreate('admin', 'web');
 $admin->givePermissionTo($edit);
 ```
 
-Then assign them to users:
+Then give them to users:
 
 | Method | What it does |
 | --- | --- |
@@ -111,11 +111,11 @@ Then assign them to users:
 | `$user->revokePermissionTo('Edit User')` | Removes a direct permission |
 | `$user->syncPermissions([...])` | Replaces all direct permissions |
 
-The `sync*` methods are what you want behind an "edit user" form: whatever the admin ticked becomes the new truth, with nothing left over from before.
+Behind an "edit user" form, reach for the `sync*` methods. Whatever the admin ticked becomes the new state, and nothing from before is left lying around.
 
-## Checking roles and permissions
+## Checking roles and permissions in PHP, routes and Blade
 
-You can check in PHP, in routes and in Blade.
+In PHP you have a handful of methods:
 
 ```php
 $user->can('Edit User');              // through Laravel's Gate
@@ -125,9 +125,9 @@ $user->hasAnyRole(['admin', 'manager']);
 $user->getAllPermissions();           // collection of Permission models
 ```
 
-`can()` works because the package registers a `Gate::before` callback (controlled by `register_permission_check_method` in `config/permission.php`, on by default). There is one difference worth knowing: `hasPermissionTo()` throws a `PermissionDoesNotExist` exception for a permission name that isn't in the database, while `can()` simply returns `false`.
+`can()` works because the package registers a `Gate::before` callback. That's controlled by `register_permission_check_method` in `config/permission.php` and it's on by default. One difference catches people out: `hasPermissionTo()` throws a `PermissionDoesNotExist` exception for a name that isn't in the database, while `can()` just returns `false`.
 
-**Routes** use the aliases you registered. Separate alternatives with `|` — the user needs **any** of them:
+Routes use the aliases you registered. Separate alternatives with `|`, and the user needs any one of them:
 
 ```php
 Route::get('users', [UserController::class, 'index'])
@@ -137,9 +137,9 @@ Route::get('reports', [ReportController::class, 'index'])
     ->middleware('role:admin|manager');
 ```
 
-A failed check throws `Spatie\Permission\Exceptions\UnauthorizedException`, which renders as a 403 response.
+When a check fails, you get `Spatie\Permission\Exceptions\UnauthorizedException`, which renders as a 403.
 
-**Blade** gets Laravel's `@can` plus the package's own directives such as `@role`, `@hasrole`, `@hasanyrole` and `@haspermission`:
+In Blade you have Laravel's `@can` plus the package's own directives, like `@role`, `@hasrole`, `@hasanyrole` and `@haspermission`:
 
 ```blade
 @can('Edit User')
@@ -149,7 +149,7 @@ A failed check throws `Spatie\Permission\Exceptions\UnauthorizedException`, whic
 
 ## A super admin with Gate::before
 
-Rather than giving a super admin every permission (and remembering to add each new one), let them pass every check. Register your own `Gate::before` in `AppServiceProvider::boot()`:
+Don't give a super admin every permission and then try to remember each new one you add. Let them pass every check instead. Register your own `Gate::before` in `AppServiceProvider::boot()`:
 
 ```php
 use Illuminate\Support\Facades\Gate;
@@ -159,19 +159,19 @@ Gate::before(function (User $user): ?bool {
 });
 ```
 
-Return `null`, not `false`, for everyone else — `false` would deny every ability for normal users. Because the `permission` middleware checks through the Gate (it calls `canAny()`), super admins pass it too. The `role` middleware does **not** use the Gate, so `role:admin` still rejects a super admin who lacks the `admin` role.
+Return `null` for everyone else, not `false`. A `false` there would deny every ability to every normal user. The `permission` middleware checks through the Gate (it calls `canAny()`), so super admins pass it. The `role` middleware **doesn't use the Gate**, though, so `role:admin` still turns away a super admin who doesn't have the `admin` role.
 
 ## Caching and resetting the permission cache
 
-To avoid database queries on every check, the package caches all roles and permissions. The default `expiration_time` in `config/permission.php` is 24 hours.
+The package caches all roles and permissions so it doesn't query the database on every check. The default `expiration_time` in `config/permission.php` is 24 hours.
 
-The cache is flushed automatically when a `Role` or `Permission` model is saved or deleted, and when you give a permission to a role. It is **not** flushed if you change the tables with raw queries or a database import. In those cases, reset it yourself:
+It flushes that cache on its own when a `Role` or `Permission` model is saved or deleted, and when you give a permission to a role. It won't notice raw queries or a database import, though. After those, reset it yourself:
 
 ```bash
 php artisan permission:cache-reset
 ```
 
-Or from code, for example at the end of a seeder:
+Or from code, say at the end of a seeder:
 
 ```php
 app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
@@ -183,7 +183,7 @@ If a new permission "doesn't work" in production but works locally, a stale cach
 
 ## Seeding permissions from config files
 
-Hard-coding permission names in a seeder gets messy as the app grows. A cleaner approach is one config file per feature that lists its permissions and the roles that get them by default:
+Hard-coded permission names in a seeder get messy as the app grows. I'd rather have one config file per feature that lists its permissions and the roles that get them by default:
 
 ```php
 // config/permissions/users.php
@@ -199,23 +199,19 @@ return [
 ];
 ```
 
-A seeder then loops over the files, calls `Permission::findOrCreate()` for each entry and resets the cache. Adding a permission becomes a one-line config change plus a re-run of the seeder, and the list of permissions is easy to review in a pull request.
+The seeder loops over the files, calls `Permission::findOrCreate()` for each entry and resets the cache. Adding a permission is then one line of config plus a seeder run, and the whole list is easy to review in a pull request.
 
 ## Multiple guards
 
-Every role and permission has a `guard_name`. A permission created for the `web` guard does not exist as far as a user on an `admin` or `api` guard is concerned. If you omit the guard, the package uses the model's `guard_name` property if it has one, otherwise the guards whose provider uses that model, preferring your default guard.
+Every role and permission has a `guard_name`. As far as a user on an `admin` or `api` guard is concerned, a permission created for `web` doesn't exist. Leave the guard out and the package uses the model's `guard_name` property if it has one. If not, it looks at the guards whose provider uses that model, preferring your default guard.
 
-When you use more than one guard, be explicit:
+Once you have more than one guard, I'd be explicit everywhere. Pass the guard when creating, as in `Permission::findOrCreate('Edit User', 'admin')`, and pass it to the middleware after a comma: `permission:Edit User,admin`. Only reuse the same permission name across guards when it really means the same thing.
 
-- Pass the guard when creating: `Permission::findOrCreate('Edit User', 'admin')`.
-- Pass it to the middleware after a comma: `permission:Edit User,admin`.
-- Keep permission names identical across guards only if they really mean the same thing.
-
-Separate guards are also how you keep platform admins and customer users apart in a multi-tenant app — see [How to Build a Multi-Tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html).
+Separate guards are also how you keep platform admins and customer users apart in a multi-tenant app. [How to Build a Multi-Tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html) goes into that.
 
 ## Showing and hiding UI in Inertia
 
-With Inertia there is no Blade, so share the user's permission names as props in `HandleInertiaRequests`:
+Inertia has no Blade, so share the user's permission names as props in `HandleInertiaRequests`:
 
 ```php
 'auth' => [
@@ -226,7 +222,7 @@ With Inertia there is no Blade, so share the user's permission names as props in
 ],
 ```
 
-Then write a tiny helper on the frontend. In Vue:
+Then add a tiny helper on the frontend. In Vue:
 
 ```ts
 export function usePermission() {
@@ -240,7 +236,7 @@ export function usePermission() {
 }
 ```
 
-Use it as `v-if="can('Create User')"`. The same idea works in [React and Svelte](/blog/vue-react-or-svelte-laravel-saas.html), because the props come from the same Laravel backend. Building whole menus from permissions is covered in the [SaaS Laravel docs](/docs/core/users-roles-permissions.html#checking-permissions).
+Use it as `v-if="can('Create User')"`. The same approach works in [React and Svelte](/blog/vue-react-or-svelte-laravel-saas.html), since the props come from the same Laravel backend. If you want to build whole menus from permissions, that's in the [SaaS Laravel docs](/docs/core/users-roles-permissions.html#checking-permissions).
 
 ::: tip Hiding is not securing
 Frontend checks only hide buttons. Always protect the route or controller with middleware or a policy as well.
@@ -250,22 +246,22 @@ Frontend checks only hide buttons. Always protect the route or controller with m
 
 ### Should I check roles or permissions?
 
-Check permissions in your code and use roles to hand out groups of permissions. That way you can change what a role may do without touching any controller, route or component.
+Permissions. Check them in your code and use roles to hand out groups of them. Then you can change what a role is allowed to do without touching a single controller, route or component.
 
 ### Why does my new permission return false?
 
-The usual causes are a stale cache (run `php artisan permission:cache-reset`), a guard mismatch between the permission and the user, or a typo in the name. Remember that `hasPermissionTo()` throws for unknown names while `can()` returns `false`.
+Usually it's a stale cache (run `php artisan permission:cache-reset`), a guard mismatch between the permission and the user, or a typo in the name. Keep in mind that `hasPermissionTo()` throws for unknown names while `can()` returns `false`.
 
 ### Can a user have permissions without a role?
 
-Yes. `givePermissionTo()` and `syncPermissions()` attach permissions directly to the user, and `getAllPermissions()` returns direct and role-based permissions together.
+Yes. `givePermissionTo()` and `syncPermissions()` attach permissions straight to the user, and `getAllPermissions()` returns the direct and role-based ones together.
 
 ### Does Spatie permission work with multi-tenancy?
 
-Yes. With a database per tenant, each tenant database has its own permission tables, so roles and permissions are naturally separated per customer.
+Yes. With a database per tenant, every tenant database has its own permission tables, so roles and permissions are separated per customer without any extra work.
 
-## How SaaS Laravel handles this
+## Spatie permissions in the SaaS Laravel kits
 
-The [SaaS Laravel starter kits](/) use `spatie/laravel-permission` 8 with the `permission` and `role` aliases registered in `bootstrap/app.php`. Permissions are defined in `config/permissions/*.php` (and `config/permissions/tenant/` for tenants) and seeded by a `PermissionSeeder` that resets the cache. Five system roles (super-admin, admin, manager, employee and user) are seeded out of the box, a `Gate::before` lets `super-admin` pass every check, and `auth.permissions` plus `auth.isSuperAdmin` power a `can()` helper in the Vue, React and Svelte kits. The central app uses the `web` guard and each tenant uses a `tenant` guard. New users can also be onboarded with [signed invitation links](/blog/laravel-user-invitations-signed-urls.html). The full setup is in the [users, roles and permissions docs](/docs/core/users-roles-permissions.html).
+I set the [SaaS Laravel starter kits](/) up this way: they use `spatie/laravel-permission` 8 with the `permission` and `role` aliases registered in `bootstrap/app.php`. Permissions live in `config/permissions/*.php` (and `config/permissions/tenant/` for tenants) and are seeded by a `PermissionSeeder` that resets the cache. Five system roles (super-admin, admin, manager, employee and user) are seeded from the start, a `Gate::before` lets `super-admin` pass every check, and `auth.permissions` plus `auth.isSuperAdmin` drive a `can()` helper in the Vue, React and Svelte kits. The central app uses the `web` guard and each tenant uses a `tenant` guard. You can also onboard new users with [signed invitation links](/blog/laravel-user-invitations-signed-urls.html). The full setup is in the [users, roles and permissions docs](/docs/core/users-roles-permissions.html).
 
-<BlogPostCta title="Roles and permissions, already wired up" text="SaaS Laravel ships config-driven Spatie permissions, seeded system roles, a super admin and permission-aware menus and buttons — in Vue, React or Svelte." />
+<BlogPostCta title="Roles and permissions, already wired up" text="SaaS Laravel ships config-driven Spatie permissions, seeded system roles, a super admin and permission-aware menus and buttons in Vue, React or Svelte." />

@@ -31,28 +31,30 @@ head:
 
 <BlogPostMeta />
 
-In a SaaS app, most users don't sign up on their own — a colleague adds them. A **Laravel user invitation** flow lets an admin enter a name and email, sends that person a link, and lets them choose their own password. Nobody has to share a password by email, and the admin never knows it.
+In most SaaS apps, people don't sign up on their own. A colleague adds them. A Laravel user invitation flow handles that properly: an admin enters a name and email, the app sends that person a link, and they pick their own password. Nobody emails a password around, and the admin never knows it.
 
-Laravel already has everything you need for this: temporary signed URLs, the `signed` middleware and queued notifications. This guide walks through the whole flow, from creating the pending user to accepting the invitation, plus the security details that are easy to get wrong.
+You don't need a package for this. Laravel already gives you temporary signed URLs, the `signed` middleware and queued notifications. I'll go through the whole flow, from creating the pending user to accepting the invitation, and point out the security details that are easy to miss.
 
 ## How a Laravel user invitation flow works
 
+The flow has five steps:
+
 1. An admin fills in the invite form.
-2. The app creates a **pending** user (or an invitation record).
-3. The app emails a **signed, expiring link** to the accept page.
+2. The app creates a pending user (or an invitation record).
+3. The app emails a signed, expiring link to the accept page.
 4. The invitee opens the link and sets a password.
 5. The app activates the account, signs the user in and makes the link unusable.
 
 ## Step 1: Choose a pending user or an invitation record
 
-There are two common ways to store an invitation:
+You can store an invitation in two ways:
 
 | Approach | How it works | Good for |
 | --- | --- | --- |
-| **Pending user** | Create the user right away with a random password and an `invited_at` timestamp | Simple apps where an invited user can already get roles and appear in lists |
-| **Invitation table** | Store email, role, token and expiry in an `invitations` table; create the user on accept | Inviting people who may already have an account, or teams with many pending invites |
+| Pending user | Create the user right away with a random password and an `invited_at` timestamp | Simple apps where an invited user can already get roles and appear in lists |
+| Invitation table | Store email, role, token and expiry in an `invitations` table; create the user on accept | Inviting people who may already have an account, or teams with many pending invites |
 
-A pending user is the simpler option and works well for most apps. Add a nullable `invited_at` column to your `users` table and create the user inside a transaction:
+I'd start with a pending user. It's simpler and it's enough for most apps. I only reach for a separate table when invitees might already have an account. Add a nullable `invited_at` column to your `users` table and create the user inside a transaction:
 
 ```php
 $user = DB::transaction(function () use ($data): User {
@@ -70,11 +72,11 @@ $user = DB::transaction(function () use ($data): User {
 });
 ```
 
-The random password is never shown to anyone. It only exists so the `password` column isn't empty and nobody can guess their way in before the invitation is accepted.
+Nobody ever sees that random password. It's there so the `password` column isn't empty and nobody can guess their way in before the invitation is accepted.
 
 ## Step 2: Generate a temporary signed URL
 
-A signed URL carries a `signature` query parameter: an HMAC of the URL, made with your `APP_KEY`. A temporary signed URL also adds an `expires` timestamp, which is part of the signed data. Change the user ID or the expiry time, and the signature no longer matches.
+A signed URL carries a `signature` query parameter, which is an HMAC of the URL made with your `APP_KEY`. A temporary signed URL also adds an `expires` timestamp, and that timestamp is part of the signed data. Change the user ID or the expiry time and the signature stops matching.
 
 ```php
 use Illuminate\Support\Facades\URL;
@@ -89,11 +91,11 @@ public function invitationUrl(User $user): string
 }
 ```
 
-Put only the user's ID in the URL — never the email address. URLs end up in server logs, browser history and analytics tools, and an email address in them is personal data you're leaking for no reason.
+Put only the user's ID in the URL. **Never put the email address in it.** URLs end up in server logs, browser history and analytics tools, and an email address there is personal data you're leaking for no reason.
 
 ## Step 3: Protect the routes with the signed middleware
 
-Laravel's `signed` middleware (`Illuminate\Routing\Middleware\ValidateSignature`) rejects any request whose signature is missing, wrong or expired. It throws an `InvalidSignatureException`, which Laravel turns into a 403 response.
+Laravel's `signed` middleware (`Illuminate\Routing\Middleware\ValidateSignature`) rejects any request whose signature is missing, wrong or expired. It throws an `InvalidSignatureException`, and Laravel turns that into a 403 response.
 
 ```php
 Route::middleware(['guest', 'signed'])->group(function () {
@@ -106,16 +108,15 @@ Route::middleware(['guest', 'signed'])->group(function () {
 });
 ```
 
-A few details matter here:
+The part people usually get wrong is signing only the GET route. Sign the POST route too, or anyone who knows a user ID could post a password to it. That means the accept form has to post back to the full signed URL, query string included.
 
-- **Sign the POST route too.** Otherwise anyone who knows a user ID could post a password to it. The accept form must post back to the full signed URL, including the query string.
-- **`guest`** stops a signed-in user from accepting someone else's invitation in their own session.
-- **`throttle`** limits password attempts on the accept endpoint.
-- If the link must work on several domains (for example tenant subdomains), sign a relative URL with `absolute: false` and use `signed:relative` on the route.
+The other two middleware are there for good reasons. `guest` stops a signed-in user from accepting someone else's invitation in their own session, and `throttle` limits password attempts on the accept endpoint.
+
+If the link has to work on several domains (tenant subdomains, for example), sign a relative URL with `absolute: false` and use `signed:relative` on the route.
 
 ## Step 4: Send the invitation as a queued notification
 
-Sending mail inside the request slows the admin's form down, and a mail server hiccup would turn into an error page. Implement `ShouldQueue` so the email goes through the queue:
+Sending mail inside the request slows the admin's form down, and any mail server hiccup becomes an error page. Implement `ShouldQueue` so the email goes through the queue instead:
 
 ```php
 class UserInvitationNotification extends Notification implements ShouldQueue
@@ -133,9 +134,9 @@ class UserInvitationNotification extends Notification implements ShouldQueue
 }
 ```
 
-Build the email in `toMail()` with a `MailMessage` and an `->action('Accept invitation', $this->acceptUrl)` button, and mention when the link expires. Using a constant for the lifetime keeps the email text and the URL expiry in sync.
+Build the email in `toMail()` with a `MailMessage` and an `->action('Accept invitation', $this->acceptUrl)` button, and say when the link expires. I like a constant for the lifetime, because then the email text and the URL expiry can't drift apart.
 
-Send the notification **after** the database transaction has committed, so a queue worker never picks up a job for a user that doesn't exist yet:
+Send the notification only after the database transaction has committed. Otherwise a queue worker can pick up a job for a user that doesn't exist yet:
 
 ```php
 $user->notify(new UserInvitationNotification($this->invitationUrl($user)));
@@ -147,7 +148,7 @@ Queued notifications are only sent while a queue worker runs (`php artisan queue
 
 ## Step 5: The accept page
 
-The accept controller does three things: refuses links that were already used, validates the password and activates the account.
+The accept controller refuses links that were already used, validates the password and activates the account.
 
 ```php
 public function store(AcceptUserInvitationData $data, Request $request, User $user): RedirectResponse
@@ -167,17 +168,17 @@ public function store(AcceptUserInvitationData $data, Request $request, User $us
 }
 ```
 
-Validate the password with your normal rules (`Password::defaults()` and `confirmed`). Marking the email as verified is safe: opening a link sent to that inbox proves the user controls it. Regenerating the session after login protects against session fixation.
+Validate the password with your normal rules (`Password::defaults()` and `confirmed`). Marking the email as verified is safe here, since opening a link sent to that inbox proves the user controls it. Regenerating the session after login protects against session fixation.
 
-The `show` action should run the same `invited_at` check, so an old link sends people to the login page instead of showing a form they can't use.
+Give the `show` action the same `invited_at` check. Then an old link sends people to the login page instead of showing them a form they can't use.
 
 ## Resending and revoking invitations
 
-**Resending** is just generating a new signed URL and sending the notification again. Only allow it while the invitation is still pending, and rate limit the endpoint so it can't be used to spam an inbox.
+A resend is just a new signed URL and the same notification sent again. Only allow it while the invitation is still pending, and rate limit the endpoint so nobody can use it to spam an inbox.
 
-Keep in mind that a resend doesn't cancel the earlier link — both stay valid until they expire or the invitation is accepted. If you need older links to stop working, add a value to the signed parameters that changes on every resend (such as a timestamp or random token stored on the invitation) and compare it in the controller.
+One thing to know: a resend doesn't cancel the earlier link. Both stay valid until they expire or the invitation is accepted. For most apps I don't think that matters. If you do need older links to die, add a value to the signed parameters that changes on every resend (a timestamp or a random token stored on the invitation) and compare it in the controller.
 
-**Revoking** is simpler: delete the pending user or invitation record. Route model binding then finds nothing and the link returns a 404.
+Revoking is simpler. Delete the pending user or invitation record, route model binding finds nothing, and the link returns a 404.
 
 ## Security checklist for invitation links
 
@@ -190,17 +191,17 @@ Keep in mind that a resend doesn't cancel the earlier link — both stay valid u
 | Brute-force on the accept form | Add `throttle` middleware |
 | Wrong user signed in | Use the `guest` middleware and regenerate the session after login |
 
-Once the user is in, what they can see depends on their role — see [Laravel Roles and Permissions with Spatie](/blog/laravel-roles-permissions-spatie.html) for assigning roles and checking permissions.
+Once the user is in, their role decides what they can see. Assigning roles and checking permissions is covered in [Laravel Roles and Permissions with Spatie](/blog/laravel-roles-permissions-spatie.html).
 
 ## Frequently asked questions
 
 ### How long should an invitation link be valid?
 
-Long enough for someone to find the email after a weekend or a holiday, short enough that forgotten links don't stay useful for months. Seven days is a common choice.
+Long enough for someone to find the email after a weekend or a holiday, and short enough that forgotten links don't stay useful for months. Seven days is a common choice, and it's what I use.
 
 ### What happens when someone opens an expired invitation link?
 
-The `signed` middleware rejects it with a 403 response, because the `expires` timestamp is part of the signature. The admin can send a new invitation.
+The `signed` middleware rejects it with a 403, because the `expires` timestamp is part of the signature. The admin can send a new invitation.
 
 ### Can an invitation link be used twice?
 
@@ -208,10 +209,10 @@ Not if you clear the pending state on acceptance. Once `invited_at` is `null`, t
 
 ### Why are my invitation emails not being sent?
 
-Because the notification implements `ShouldQueue`, it waits in the queue until a worker processes it. Start `php artisan queue:work` (or your process manager) and check for failed jobs.
+The notification implements `ShouldQueue`, so it sits in the queue until a worker processes it. Start `php artisan queue:work` (or your process manager) and check for failed jobs.
 
-## How SaaS Laravel handles this
+## How SaaS Laravel handles invitations
 
-The [SaaS Laravel starter kits](/) follow this exact flow in the `Modules/User` module. When an admin ticks **Send invitation email**, `UserService` creates the user with a random password and `invited_at`, assigns the selected role, and queues a `UserInvitationNotification` with a signed link valid for 7 days. The accept routes use the `guest` and `signed` middleware, and the POST route is throttled. On the accept page the user sets a password, is verified and signed in, and `invited_at` is cleared so the link can't be reused. The user list shows an "Invitation pending" badge until then. Workspace owners can be invited the same way when a tenant is created, and those invitations can be resent while the workspace is still pending. See the [invitation docs](/docs/core/users-roles-permissions.html#invitations) and the [queue worker setup](/docs/getting-started/local-development.html#queue-worker), or read our [Laravel SaaS starter kit guide](/blog/laravel-saas-starter-kit.html).
+If you'd rather not build this yourself, the [SaaS Laravel starter kits](/) already follow this flow in the `Modules/User` module. When an admin ticks "Send invitation email", `UserService` creates the user with a random password and `invited_at`, assigns the selected role, and queues a `UserInvitationNotification` with a signed link valid for 7 days. The accept routes use the `guest` and `signed` middleware, and the POST route is throttled. On the accept page the user sets a password, gets verified and signed in, and `invited_at` is cleared so the link can't be reused. Until then, the user list shows an "Invitation pending" badge. Workspace owners can be invited the same way when a tenant is created, and those invitations can be resent while the workspace is still pending. The [invitation docs](/docs/core/users-roles-permissions.html#invitations) and [queue worker setup](/docs/getting-started/local-development.html#queue-worker) have the details, and the [Laravel SaaS starter kit guide](/blog/laravel-saas-starter-kit.html) shows the bigger picture.
 
-<BlogPostCta title="Invitations that just work" text="SaaS Laravel ships queued, signed and expiring user invitations with roles and permissions built in — for Vue, React or Svelte." />
+<BlogPostCta title="Invitations that just work" text="SaaS Laravel ships queued, signed and expiring user invitations with roles and permissions built in, for Vue, React or Svelte." />

@@ -31,13 +31,13 @@ head:
 
 <BlogPostMeta />
 
-Giving every customer their own address, like `acme.your-saas.com`, is the most common way to run a multi-tenant Laravel app. A **Laravel multi-tenancy subdomain** setup looks simple from the outside, but several pieces have to agree with each other: the identification middleware, the list of central domains, the `domains` table, your routes, session cookies, DNS and the way you build links.
+Most multi-tenant Laravel apps give each customer their own address, like `acme.your-saas.com`. A Laravel multi-tenancy subdomain setup looks simple from the outside, but a surprising number of pieces have to agree with each other: the identification middleware, the list of central domains, the `domains` table, your routes, session cookies, DNS and the way you build links. When one of them is off, you usually get a confusing 404 or a server error rather than a helpful message.
 
-This guide walks through each piece using [stancl/tenancy](https://tenancyforlaravel.com) (version 3), the package behind most Laravel multi-tenant apps. If you are still choosing a data model, start with [How to Build a Multi-Tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html).
+We'll go through each piece using [stancl/tenancy](https://tenancyforlaravel.com) (version 3), the package behind most Laravel multi-tenant apps. If you haven't settled on a data model yet, read [how to build a multi-tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html) first.
 
 ## How subdomain identification works
 
-Every request goes through the same steps before your controller runs:
+Before your controller runs, every request goes through the same steps:
 
 ```text
 acme.your-saas.com/dashboard
@@ -47,11 +47,11 @@ acme.your-saas.com/dashboard
   → your route runs inside the tenant
 ```
 
-If the host is a central domain (`your-saas.com`), tenancy is not started and the request is handled by your central app: the marketing site, sign-up and the platform admin.
+When the host is a central domain (`your-saas.com`), tenancy isn't started. Your central app handles the request instead, which covers the marketing site, sign-up and the platform admin.
 
 ## Laravel multi-tenancy subdomain middleware: which one to use
 
-stancl/tenancy ships three middleware that read the host name. They differ in **what they look up** in the `domains` table.
+stancl/tenancy ships three middleware that read the host name. The difference between them is what they look up in the `domains` table.
 
 | Middleware | Looks up | Store in `domains.domain` |
 | --- | --- | --- |
@@ -59,13 +59,13 @@ stancl/tenancy ships three middleware that read the host name. They differ in **
 | `InitializeTenancyBySubdomain` | Only the first part of the host, e.g. `acme` | `acme` |
 | `InitializeTenancyByDomainOrSubdomain` | The subdomain if the host ends with a central domain, otherwise the full host | `acme` for subdomains, `app.customer.com` for custom domains |
 
-`InitializeTenancyBySubdomain` throws a `NotASubdomainException` when the host is a central domain, a bare `localhost`, an IP address, or a domain that does not end with one of your central domains. By default the subdomain is the first part of the host; the static `$subdomainIndex` property changes that if you prefix hosts with `www`.
+`InitializeTenancyBySubdomain` throws a `NotASubdomainException` when the host is a central domain, a bare `localhost`, an IP address, or a domain that doesn't end with one of your central domains. By default it treats the first part of the host as the subdomain. If you prefix hosts with `www`, the static `$subdomainIndex` property lets you change that.
 
-Storing the **full host** with `InitializeTenancyByDomain` is the most explicit option. Each row in the `domains` table is exactly the host a browser sends, so there is no guessing, and switching the central domain later means updating rows rather than changing code.
+Our preference is to store the **full host** with `InitializeTenancyByDomain`. It's the most explicit option: each row in the `domains` table is exactly the host a browser sends, so nothing is guessed, and moving to a different central domain later means updating rows rather than changing code.
 
 ## Configure the central domains
 
-The package needs to know which hosts are **not** tenants. That is the `central_domains` key in `config/tenancy.php`:
+The package has to know which hosts are not tenants. That's the `central_domains` key in `config/tenancy.php`:
 
 ```php
 // config/tenancy.php
@@ -74,11 +74,11 @@ The package needs to know which hosts are **not** tenants. That is the `central_
 ],
 ```
 
-The published config lists `127.0.0.1` and `localhost` by default. Replace them with your real central domain, otherwise your production host is treated as a tenant and returns an error. The middleware compare the request host exactly, so `your-saas.com` and `www.your-saas.com` are two different entries.
+By default, the published config lists `127.0.0.1` and `localhost`. Replace them with your real central domain. If you don't, your production host gets treated as a tenant and returns an error. The middleware compare the request host exactly, so `your-saas.com` and `www.your-saas.com` need two separate entries.
 
 ## Split routes: routes/tenant.php vs routes/web.php
 
-`php artisan tenancy:install` creates `routes/tenant.php`, and the generated `TenancyServiceProvider` loads it. Tenant routes carry two middleware:
+Running `php artisan tenancy:install` creates `routes/tenant.php`, and the generated `TenancyServiceProvider` loads it. Tenant routes carry two middleware:
 
 ```php
 // routes/tenant.php
@@ -91,11 +91,11 @@ Route::middleware([
 });
 ```
 
-`PreventAccessFromCentralDomains` aborts with a 404 when a tenant route is opened on a central domain. `routes/web.php` keeps your central routes. Protect those from tenant hosts too: stancl's documentation suggests wrapping them in `Route::domain()` for each central domain, and a small middleware that aborts when the host is **not** in `central_domains` works just as well.
+`PreventAccessFromCentralDomains` aborts with a 404 when someone opens a tenant route on a central domain. Your central routes stay in `routes/web.php`, and they need protecting from tenant hosts as well. stancl's documentation suggests wrapping them in `Route::domain()` for each central domain. A small middleware that aborts when the host isn't in `central_domains` does the job just as well, and it's what we tend to use.
 
 ### Unknown subdomains
 
-A request for `typo.your-saas.com` throws `TenantCouldNotBeIdentifiedOnDomainException`. Unless you handle it, that is a server error. Turn it into a 404 in `bootstrap/app.php`:
+A request for `typo.your-saas.com` throws `TenantCouldNotBeIdentifiedOnDomainException`, and unless you handle it, the visitor sees a server error. Turn it into a 404 in `bootstrap/app.php`:
 
 ```php
 use Stancl\Tenancy\Contracts\TenantCouldNotBeIdentifiedException;
@@ -109,7 +109,7 @@ use Stancl\Tenancy\Contracts\TenantCouldNotBeIdentifiedException;
 
 ## The domains table
 
-The package's migration creates a central `domains` table with a unique `domain` column and a `tenant_id` foreign key that cascades on delete. One tenant can have several domains:
+The package's migration creates a central `domains` table with a unique `domain` column and a `tenant_id` foreign key that cascades on delete. A tenant can have more than one domain:
 
 ```php
 $tenant = Tenant::create();
@@ -117,30 +117,32 @@ $tenant = Tenant::create();
 $tenant->domains()->create(['domain' => 'acme.your-saas.com']);
 ```
 
-The `Domain` model converts domains to lowercase and checks on save that the domain does not belong to another tenant. It throws `DomainOccupiedByOtherTenantException` if it does. Catch it and turn it into a validation error when customers pick their own subdomain. Also validate the subdomain yourself: lowercase letters, digits and hyphens, at most 63 characters per DNS label, and a list of reserved names such as `www`, `api` or `admin`.
+On save, the `Domain` model lowercases the domain and checks that it doesn't already belong to another tenant. If it does, you get a `DomainOccupiedByOtherTenantException`. When customers pick their own subdomain, catch that exception and show it as a validation error.
+
+You should still validate the subdomain yourself before it gets that far. Allow lowercase letters, digits and hyphens, cap each DNS label at 63 characters, and keep a list of reserved names such as `www`, `api` or `admin`.
 
 ## Sessions and cookies across subdomains
 
-Leave `SESSION_DOMAIN` empty (`null`) in a multi-tenant app. The session cookie is then a **host-only** cookie: `acme.your-saas.com` and `globex.your-saas.com` each get their own session, and signing in to one tenant never signs you in to another.
+In a multi-tenant app, leave `SESSION_DOMAIN` empty (`null`). The session cookie is then a **host-only** cookie. `acme.your-saas.com` and `globex.your-saas.com` each get their own session, and signing in to one tenant never signs you in to another.
 
-Setting `SESSION_DOMAIN=.your-saas.com` shares one cookie across every subdomain. That is useful for a single app spread over subdomains, but in a multi-tenant app it mixes tenant sessions together. Laravel's `XSRF-TOKEN` cookie uses the same domain setting, so it would be shared as well.
+With `SESSION_DOMAIN=.your-saas.com`, one cookie is shared across every subdomain. That's handy for a single app spread over subdomains, but here it mixes tenant sessions together. Laravel's `XSRF-TOKEN` cookie uses the same domain setting, so it would be shared too.
 
 ::: tip Sessions in tenant databases
-With the database session driver and the database bootstrapper, sessions started on a tenant host are stored in that tenant's database. That is another reason a cookie shared across tenants would not work.
+If you use the database session driver together with the database bootstrapper, sessions started on a tenant host are stored in that tenant's database. That's one more reason a cookie shared across tenants wouldn't work.
 :::
 
 ## Generating links to a tenant's subdomain
 
-`route()` builds URLs for the **current** host. From the central admin, `route('dashboard')` points at `your-saas.com`, not at the tenant. You have two options.
+`route()` builds URLs for the current host. So from the central admin, `route('dashboard')` points at `your-saas.com`, not at the tenant. There are two ways around this.
 
-stancl/tenancy includes a `tenant_route()` helper that swaps the host of a generated URL:
+The first is the `tenant_route()` helper that comes with stancl/tenancy. It swaps the host of a generated URL:
 
 ```php
 $url = tenant_route('acme.your-saas.com', 'dashboard');
 // https://acme.your-saas.com/dashboard
 ```
 
-Or build the URL yourself from a relative path, which also works for signed links:
+The second is to build the URL yourself from a relative path. We like this one because it also works for signed links:
 
 ```php
 $path = URL::temporarySignedRoute('invitation.show', now()->addDays(7), [], absolute: false);
@@ -148,11 +150,11 @@ $path = URL::temporarySignedRoute('invitation.show', now()->addDays(7), [], abso
 $url = "https://{$tenant->domains()->value('domain')}{$path}";
 ```
 
-Validate relative signed URLs with the `signed:relative` middleware on the tenant route. This pattern is covered in more detail in [User Invitations in Laravel with Signed URLs](/blog/laravel-user-invitations-signed-urls.html).
+On the tenant route, validate relative signed URLs with the `signed:relative` middleware. There's a fuller walkthrough of this pattern in [our post on user invitations with signed URLs](/blog/laravel-user-invitations-signed-urls.html).
 
 ## Wildcard DNS and TLS in production
 
-Every new tenant must work without touching DNS or the server. That needs three things:
+A new tenant should work the moment it's created, without anyone touching DNS or the server. For that you need the following:
 
 | Layer | What to set up |
 | --- | --- |
@@ -160,34 +162,34 @@ Every new tenant must work without touching DNS or the server. That needs three 
 | Web server | A virtual host that serves both, e.g. nginx `server_name your-saas.com *.your-saas.com;` |
 | TLS | A wildcard certificate for `*.your-saas.com`. Let's Encrypt issues wildcards only through the DNS-01 challenge |
 
-A wildcard certificate covers one level only: `acme.your-saas.com` is covered, `eu.acme.your-saas.com` is not.
+Keep in mind that a wildcard certificate only covers one level. `acme.your-saas.com` is covered; `eu.acme.your-saas.com` isn't.
 
-If you enable Laravel's trusted hosts, `$middleware->trustHosts()` without arguments trusts the host of `APP_URL` and all of its subdomains. It is skipped in the `local` environment.
+If you turn on Laravel's trusted hosts, calling `$middleware->trustHosts()` without arguments trusts the host of `APP_URL` and all of its subdomains. It's skipped in the `local` environment.
 
 ## Local development
 
-Your laptop needs wildcard subdomains too, and `/etc/hosts` cannot do wildcards. [Local Laravel Subdomains with Laravel Herd](/blog/laravel-herd-subdomains.html) covers Herd, the alternatives and the common pitfalls.
+You need wildcard subdomains on your laptop as well, and `/etc/hosts` can't do wildcards. Our [guide to local subdomains with Laravel Herd](/blog/laravel-herd-subdomains.html) covers Herd, the alternatives and the usual pitfalls.
 
 ## Frequently asked questions
 
 ### Should I store the full domain or only the subdomain?
 
-It depends on the middleware. `InitializeTenancyByDomain` looks up the full host, `InitializeTenancyBySubdomain` looks up only the first part. Storing full hosts is the most explicit, and it keeps the door open for other domains later.
+That depends on the middleware. `InitializeTenancyByDomain` looks up the full host, while `InitializeTenancyBySubdomain` only looks up the first part. We'd store full hosts: it's the most explicit option and it leaves room for other domains later.
 
 ### Why do I get a 404 on my central domain?
 
-Either a tenant route is being opened on a central host, which `PreventAccessFromCentralDomains` blocks on purpose, or your host is missing from `central_domains`. Check that `APP_DOMAIN` matches the host in the browser exactly.
+There are two usual causes. Either a tenant route is being opened on a central host, which `PreventAccessFromCentralDomains` blocks on purpose, or your host is missing from `central_domains`. Check that `APP_DOMAIN` matches the host in the browser exactly.
 
 ### Can users stay logged in across tenant subdomains?
 
-Only with a shared `SESSION_DOMAIN`, which is not recommended for multi-tenant apps. Each tenant should have its own session, and users sign in on each tenant separately.
+Only with a shared `SESSION_DOMAIN`, and we don't recommend that for multi-tenant apps. Each tenant should have its own session, with users signing in to each tenant separately.
 
 ### Can tenants also use their own custom domain?
 
-Yes. Custom domains are just more rows in the `domains` table, identified by `InitializeTenancyByDomain` or `InitializeTenancyByDomainOrSubdomain`. The customer points their domain at your server, and you need a TLS certificate for each custom domain.
+Yes. A custom domain is just another row in the `domains` table, identified by `InitializeTenancyByDomain` or `InitializeTenancyByDomainOrSubdomain`. The customer points their domain at your server, and you need a TLS certificate for each custom domain.
 
 ## How SaaS Laravel handles subdomains
 
-In the [SaaS Laravel starter kits](/), `APP_DOMAIN` is the only central domain and tenant domains are always `<subdomain>.APP_DOMAIN`, stored as full hosts. A global middleware skips tenancy on the central domain and runs `InitializeTenancyByDomain` everywhere else, unknown hosts return a 404, and a `central.only` middleware keeps the central admin off tenant hosts. `SESSION_DOMAIN` stays `null`, and invitation and password-reset links are built from the tenant's primary domain. Each tenant can have several subdomains with their own app name, language and auth features. See [Domains](/docs/core/domains.html) and [Multi-tenancy](/docs/core/multi-tenancy.html).
+This is the setup we ship in the [SaaS Laravel starter kits](/). `APP_DOMAIN` is the only central domain, and tenant domains are always `<subdomain>.APP_DOMAIN`, stored as full hosts. A global middleware skips tenancy on the central domain and runs `InitializeTenancyByDomain` everywhere else. Unknown hosts return a 404, and a `central.only` middleware keeps the central admin off tenant hosts. `SESSION_DOMAIN` stays `null`, and invitation and password-reset links are built from the tenant's primary domain. Each tenant can have several subdomains with their own app name, language and auth features. The [Domains](/docs/core/domains.html) and [Multi-tenancy](/docs/core/multi-tenancy.html) docs have the details.
 
 <BlogPostCta title="Subdomain multi-tenancy, already wired up" text="SaaS Laravel identifies tenants by subdomain, keeps sessions per tenant and builds tenant links for you, with Vue, React or Svelte on the same Laravel backend." />

@@ -31,30 +31,29 @@ head:
 
 <BlogPostMeta />
 
-Few architecture topics split Laravel developers like the **Laravel repository pattern**. Some teams put a repository and an interface in front of every model. Others call it pointless ceremony on top of Eloquent. Both camps are right about different situations.
+Ask a room of Laravel developers about the Laravel repository pattern and you'll get two very confident, very different answers. Some teams put a repository and an interface in front of every model. Others see it as pointless ceremony on top of Eloquent. Honestly, both camps are right, just about different situations.
 
-This post explains what a repository is, why it's controversial in Laravel, the cases where it clearly helps, the cases where it only adds files, lighter alternatives to try first, and rules that keep a repository useful if you decide to write one.
+So instead of picking a side, I want to help you tell those situations apart. We'll look at what a repository actually is, why it's controversial in Laravel, where it clearly helps, where it only adds files, some lighter alternatives worth trying first, and a few rules that keep a repository useful if you do write one.
 
 ## What the repository pattern is
 
-A repository is a class that hides *how* data is fetched and stored behind methods that describe *what* you need. Instead of building a query in your controller or service, you call `$invoices->overdueForCustomer($customer)` and get results back.
+A repository is a class that hides *how* data is fetched and stored behind methods that describe *what* you need. Rather than building a query in your controller or service, you call `$invoices->overdueForCustomer($customer)` and get results back.
 
-In Laravel projects it usually shows up in one of two forms:
+In Laravel projects you'll usually see it in one of two shapes. The first is an interface plus an implementation: an `InvoiceRepositoryInterface` is bound to an `EloquentInvoiceRepository` in a service provider, and callers type-hint the interface. The second is simpler, a concrete `InvoiceRepository` class with query methods that you inject directly, with no interface at all.
 
-- **Interface plus implementation.** An `InvoiceRepositoryInterface` is bound to an `EloquentInvoiceRepository` in a service provider, and callers type-hint the interface.
-- **A concrete class.** An `InvoiceRepository` with query methods, injected directly, with no interface.
+Either way, the promise is the same. Your business logic stops depending on the database layer, queries live in one place, and in theory you could swap in another data source later.
 
-The promise is that your business logic no longer depends on the database layer, so queries live in one place and could be swapped for another data source.
+## Why the Laravel repository pattern is controversial
 
-## Why the repository pattern is controversial in Laravel
+If you're wondering where the friction comes from, it's the pattern's origins. It comes from architectures where domain objects know nothing about the database. Eloquent works the opposite way. It's an Active Record ORM, so every model already knows how to query and save itself, with a rich query builder, relationships, scopes and eager loading built in.
 
-The pattern comes from architectures where the domain objects know nothing about the database. Eloquent works the other way round. It's an Active Record ORM: every model already knows how to query and save itself, with a rich query builder, relationships, scopes and eager loading.
+Put a repository on top of that and a few problems tend to show up.
 
-That creates three common problems:
+The abstraction leaks. Most Eloquent repositories return Eloquent models or collections, and callers go on using `$invoice->customer`, lazy loading and `save()`. The database layer was never really hidden.
 
-1. **The abstraction leaks.** Most Eloquent repositories return Eloquent models or collections. Callers still use `$invoice->customer`, lazy loading and `save()`, so the database layer was never really hidden.
-2. **The database swap never comes.** Very few apps replace MySQL or PostgreSQL with something that isn't SQL. An interface built for that day often never gets a second implementation.
-3. **Wrappers add work without adding meaning.** The classic generic repository looks like this:
+The database swap you planned for rarely happens. Very few apps replace MySQL or PostgreSQL with something that isn't SQL, so an interface built for that day often never gets a second implementation.
+
+And generic wrappers add work without adding meaning. This is the classic version:
 
 ```php
 interface UserRepositoryInterface
@@ -67,19 +66,17 @@ interface UserRepositoryInterface
 }
 ```
 
-Every method is a thinner version of something Eloquent already does. You write an interface, an implementation and a binding, and in return you lose features like eager loading options and chunking, until you add them back one by one.
+Look at each method and you'll see a thinner version of something Eloquent already does. You write an interface, an implementation and a binding, and what you get in return is fewer features. Eager loading options and chunking disappear until you add them back one at a time.
 
 ## When a repository helps
 
-A repository earns its place when it holds real query knowledge that several parts of the app need. Good signs:
+A repository earns its place when it holds real query knowledge that several parts of the app need. Complex listing queries are the clearest example: think of an admin screen with free-text search across several columns and relations, status filters, sorting and pagination. Reporting is another, whether that's counts per status, totals per month or dashboards that aggregate data.
 
-- **Complex listing queries.** An admin screen with free-text search across several columns and relations, status filters, sorting and pagination.
-- **Reporting and statistics.** Counts per status, totals per month, dashboards that aggregate data.
-- **Mapping to read models.** Queries that return Data objects or arrays shaped for a page rather than raw models.
-- **Raw SQL or unusual queries** that you want in one tested place instead of scattered through services.
-- **A non-Eloquent data source.** Data that comes from an external API or a search engine is where an interface really pays off, because you may actually have two implementations — a real one and a fake for tests.
+It also helps when you're mapping to read models, meaning queries that return Data objects or arrays shaped for a page instead of raw models. Raw SQL and unusual queries belong here too, so they sit in one tested place rather than scattered across services.
 
-Here's what a repository with real query knowledge looks like. It is a concrete class, it only reads, and it returns data shaped for the page:
+The strongest case is a **non-Eloquent data source**. When data comes from an external API or a search engine, an interface really pays off, because you may genuinely have two implementations: the real one and a fake for tests.
+
+Here's what a repository with real query knowledge looks like. Notice that it's a concrete class, it only reads, and it returns data shaped for the page:
 
 ```php
 class InvoiceRepository
@@ -99,25 +96,21 @@ class InvoiceRepository
 }
 ```
 
-The index controller, an export job and an API endpoint can all call `search()` and get the same results. The `InvoiceData` objects come from [spatie/laravel-data](/blog/laravel-data-objects.html), so the page receives exactly the fields it needs.
+Now the index controller, an export job and an API endpoint can all call `search()` and get identical results. The `InvoiceData` objects come from [spatie/laravel-data](/blog/laravel-data-objects.html), so the page receives exactly the fields it needs and nothing more.
 
 ## When a repository hurts
 
-Skip the repository when:
+On the other side, I'd skip the repository if all it does is wrap `find()`, `create()`, `update()` and `delete()`, or if each query is only ever used in one place. The same goes for giving every repository an interface "just in case" when it will have one implementation forever.
 
-- It only wraps `find()`, `create()`, `update()` and `delete()`.
-- Each query is used in exactly one place.
-- Every repository gets an interface "just in case", with one implementation forever.
-- The repository starts sending emails, dispatching jobs or running transactions. That's business logic, and it belongs in your [Laravel service layer](/blog/laravel-service-layer-pattern.html).
-- You're building a small app or a prototype where the extra layer slows you down.
+Watch out, too, for a repository that starts sending emails, dispatching jobs or running transactions. That's business logic, and it belongs in your [Laravel service layer](/blog/laravel-service-layer-pattern.html). And if you're building a small app or a prototype, the extra layer mostly slows you down.
 
 ## Lighter alternatives to try first
 
-Eloquent has built-in places for reusable query logic. They cover most of what people reach for repositories to do.
+Before creating a repository, it's worth knowing that Eloquent already has built-in homes for reusable query logic. They cover most of what people reach for repositories to do.
 
 ### Local scopes
 
-A scope names a reusable constraint on the model itself. In recent Laravel versions you can mark a protected method with the `#[Scope]` attribute:
+A scope gives a name to a reusable constraint, right on the model. In recent Laravel versions you can mark a protected method with the `#[Scope]` attribute:
 
 ```php
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -130,11 +123,11 @@ protected function overdue(Builder $query): void
 }
 ```
 
-Call it with `Invoice::query()->overdue()->get()`, and chain it with other constraints as usual.
+You call it with `Invoice::query()->overdue()->get()`, and it chains with other constraints as usual.
 
 ### Custom Eloquent builders
 
-When a model collects many scopes, move them into a dedicated builder class and register it with the `#[UseEloquentBuilder]` attribute on the model:
+Once a model collects lots of scopes, you can move them into a dedicated builder class and register it with the `#[UseEloquentBuilder]` attribute on the model:
 
 ```php
 #[UseEloquentBuilder(InvoiceBuilder::class)]
@@ -149,13 +142,15 @@ class InvoiceBuilder extends Builder
 }
 ```
 
-You keep everything Eloquent offers, and the query methods get their own file.
+This keeps everything Eloquent offers while giving the query methods their own file.
 
 ### Query classes
 
-For a single complex query, such as a report, a small invokable class like `MonthlyRevenueQuery` does the job of a repository method without a whole repository around it.
+Sometimes you only have one complex query, like a report. A small invokable class such as `MonthlyRevenueQuery` does the job of a repository method without a whole repository around it.
 
 ## A quick decision guide
+
+If you just want the short version, this table maps each situation to the tool I'd use:
 
 | Situation | Best fit |
 | --- | --- |
@@ -168,35 +163,34 @@ For a single complex query, such as a report, a small invokable class like `Mont
 
 ## Rules for repositories that stay useful
 
-If a repository is the right tool, these rules keep it from turning into the generic kind:
+If you've decided a repository is the right tool, a few habits stop it from drifting into the generic kind.
 
-- **Name methods after questions.** `overdueForCustomer()` beats `findWhere(['status' => 'overdue'])`.
-- **Mostly read.** Put writes, transactions and side effects in services.
-- **Start concrete.** Add an interface when a second implementation actually exists.
-- **Return finished results.** Return collections, paginators or Data objects — not a half-built query builder the caller keeps modifying.
-- **Eager load inside.** The repository knows which relations its results need, so it should load them and avoid N+1 queries.
-- **Test against a real database.** Repositories are about SQL, so a test with a real (test) database is more useful than mocks. See [testing a Laravel SaaS with Pest](/blog/laravel-saas-testing-pest.html).
+Name methods after questions. `overdueForCustomer()` tells you far more than `findWhere(['status' => 'overdue'])`. Keep the repository mostly about reading, and leave writes, transactions and side effects to services.
+
+**Start concrete.** Only add an interface when a second implementation actually exists. When you return results, return finished ones: collections, paginators or Data objects, not a half-built query builder the caller keeps modifying. And eager load inside the repository, since it knows which relations its results need and can avoid N+1 queries.
+
+Finally, test repositories against a real (test) database rather than mocks. Repositories are about SQL, so mocking the SQL away doesn't tell you much. There's more on that in [testing a Laravel SaaS with Pest](/blog/laravel-saas-testing-pest.html).
 
 ## Frequently asked questions
 
 ### Does Laravel recommend the repository pattern?
 
-No. Laravel's documentation doesn't use or require repositories. Eloquent models query and save themselves, and the framework's own tools — scopes, builders and relationships — are the default way to organise queries.
+No. Laravel's documentation doesn't use or require repositories. Eloquent models query and save themselves, and the framework's own tools (scopes, builders and relationships) are the default way to organise queries.
 
 ### Do I need an interface for every repository?
 
-No. An interface is worth it when you have, or will soon have, more than one implementation, such as a live API client and a fake for tests. For an Eloquent-only repository, a concrete class is simpler and just as easy to inject.
+No. An interface is worth it when you have, or will soon have, more than one implementation, like a live API client and a fake for tests. For a repository that only uses Eloquent, a concrete class is simpler and just as easy to inject.
 
 ### What is the difference between a repository and a service?
 
-A repository answers questions about stored data: find, search, count. A service performs use cases: create an order, invite a user, cancel a subscription. A service may use a repository to read data, but not the other way round.
+A repository answers questions about stored data: find, search, count. A service carries out use cases: create an order, invite a user, cancel a subscription. A service can use a repository to read data, but it shouldn't work the other way round.
 
 ### Can I mix repositories and plain Eloquent in one project?
 
-Yes, and it's often the most practical choice. Use a repository where queries are complex and shared, and plain Eloquent where they're simple. Consistency matters inside a feature, not across the whole app.
+Yes, and it's often the most practical choice. Use a repository where queries are complex and shared, and plain Eloquent where they're simple. What matters is being consistent inside a feature, not across the whole app.
 
 ## How SaaS Laravel uses repositories
 
-The SaaS Laravel kits take the selective approach. Only the `Tenant` module has repositories — `TenantRepository` and `DomainRepository` — and both are concrete classes without interfaces. They power the tenant and domain admin screens: search across several columns and relations, status and type filters, pagination, metric-card statistics and mapping to Data objects. Writes go through `TenantService` and `DomainService`, while simpler modules such as `User` and `RolePermission` query Eloquent directly in their services. See the [architecture documentation](/docs/core/architecture.html) and the [modular Laravel architecture guide](/blog/modular-laravel-architecture.html) for how these layers fit into each module.
+The SaaS Laravel kits take the selective approach described here. Only the `Tenant` module has repositories, `TenantRepository` and `DomainRepository`, and both are concrete classes with no interfaces. They power the tenant and domain admin screens: search across several columns and relations, status and type filters, pagination, metric-card statistics and mapping to Data objects. Writes go through `TenantService` and `DomainService`, while simpler modules such as `User` and `RolePermission` query Eloquent directly in their services. The [architecture documentation](/docs/core/architecture.html) and the [modular Laravel architecture guide](/blog/modular-laravel-architecture.html) show how these layers fit into each module.
 
 <BlogPostCta title="Architecture without extra ceremony" text="SaaS Laravel uses services, Data objects and repositories only where they help, with multi-tenancy, authentication and permissions built in, in Vue, React or Svelte." />

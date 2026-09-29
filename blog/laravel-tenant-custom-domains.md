@@ -31,13 +31,13 @@ head:
 
 <BlogPostMeta />
 
-Sooner or later a customer asks to use `app.acme.com` instead of `acme.your-saas.com`. Supporting a **Laravel tenant custom domain** is only a small change in Laravel itself; most of the work is around it: proving the customer owns the domain, telling them how to set up DNS, and getting a TLS certificate for a host you do not control.
+At some point a customer will ask to use `app.acme.com` instead of `acme.your-saas.com`. Supporting a **Laravel tenant custom domain** is a small change in Laravel itself. The real work sits around it: proving the customer owns the domain, telling them how to set up DNS, and getting a TLS certificate for a host you don't control.
 
-This guide covers each step with [stancl/tenancy](https://tenancyforlaravel.com) version 3. It assumes your tenants already work on subdomains, as described in [Laravel Multi-Tenancy with Subdomains](/blog/laravel-multi-tenancy-subdomains.html). For the overall architecture, see [How to Build a Multi-Tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html).
+We'll go through each step with [stancl/tenancy](https://tenancyforlaravel.com) version 3. We assume your tenants already work on subdomains, as set up in [Laravel Multi-Tenancy with Subdomains](/blog/laravel-multi-tenancy-subdomains.html). If you want the bigger architectural picture first, read [how to build a multi-tenant SaaS with Laravel](/blog/multi-tenant-saas-laravel-database-per-tenant.html).
 
 ## How a custom domain request reaches your app
 
-A request for a customer's domain passes through four layers before your code runs:
+Before any of your code runs, a request for a customer's domain passes through four layers:
 
 ```text
 app.acme.com
@@ -47,39 +47,36 @@ app.acme.com
   → Laravel: look up app.acme.com in the domains table → tenant "acme"
 ```
 
-Only the last step is Laravel. Subdomains get away with one wildcard DNS record and one wildcard certificate. Custom domains need a DNS change by the customer and a certificate per domain.
+Laravel only handles the last one. Subdomains get away with one wildcard DNS record and one wildcard certificate. Custom domains need a DNS change on the customer's side and a certificate for each domain.
 
 ## Storing a Laravel tenant custom domain
 
-stancl/tenancy already supports this. A custom domain is just another row in the `domains` table, and a tenant can have several:
+stancl/tenancy supports this already. A custom domain is just another row in the `domains` table, and a tenant can have several:
 
 ```php
 $tenant->domains()->create(['domain' => 'app.acme.com']);
 ```
 
-Which identification middleware you need depends on what you store:
+The identification middleware you need depends on what you store:
 
 | You store | Middleware |
 | --- | --- |
 | Full hosts for everything (`acme.your-saas.com`, `app.acme.com`) | `InitializeTenancyByDomain` |
 | Short subdomains (`acme`) plus full custom hosts | `InitializeTenancyByDomainOrSubdomain` |
 
-If you already store full hosts for subdomains, custom domains need no middleware change at all. Do not add customer domains to `central_domains`; that list is only for your own hosts.
+If you already store full hosts for subdomains, custom domains need no middleware change at all, which is one reason we store full hosts from the start. Don't add customer domains to `central_domains`. That list is only for your own hosts.
 
 ### Validate before you save
 
-Treat the domain as untrusted input:
+The domain is untrusted input, so clean it up first. Lowercase it and strip any scheme, path, port or trailing dot. Accept only valid host names, and reject IP addresses and `localhost`.
 
-- Lowercase it and strip any scheme, path, port or trailing dot.
-- Accept only valid host names; reject IP addresses and `localhost`.
-- Reject your own domain and its subdomains, so nobody can claim `admin.your-saas.com`.
-- Keep it unique. stancl's `Domain` model throws `DomainOccupiedByOtherTenantException` when another tenant already has the domain; turn it into a validation error.
+Then check it against your own setup. Reject your own domain and its subdomains, so nobody can claim `admin.your-saas.com`. It also has to be unique: stancl's `Domain` model throws `DomainOccupiedByOtherTenantException` when another tenant already has the domain, and you'll want to turn that into a validation error.
 
 ## Verify ownership before activation
 
-The domain lookup matches **any** row in the `domains` table. If you insert `app.acme.com` as soon as someone types it, a tenant could claim a domain they do not own, and your server would start requesting certificates for it.
+The domain lookup matches **any** row in the `domains` table. So if you insert `app.acme.com` the moment someone types it, a tenant could claim a domain they don't own, and your server would start requesting certificates for it.
 
-Keep new custom domains out of the `domains` table until they are verified. A separate table, or a `pending_domains` column on the tenant, works well:
+We keep new custom domains out of the `domains` table until they're verified. A separate table works well, or a `pending_domains` column on the tenant:
 
 ```php
 Schema::create('pending_domains', function (Blueprint $table) {
@@ -92,7 +89,7 @@ Schema::create('pending_domains', function (Blueprint $table) {
 });
 ```
 
-Show the customer a TXT record to add, such as `_your-saas-verify.app.acme.com` with the token as its value. A scheduled job checks it with PHP's `dns_get_record()`:
+Show the customer a TXT record to add, such as `_your-saas-verify.app.acme.com` with the token as its value. A scheduled job then checks it using PHP's `dns_get_record()`:
 
 ```php
 public function isVerified(PendingDomain $pending): bool
@@ -105,24 +102,24 @@ public function isVerified(PendingDomain $pending): bool
 }
 ```
 
-When the check passes, create the real `domains` row and delete the pending one in a transaction. From then on the domain resolves to the tenant.
+Once the check passes, create the real `domains` row and delete the pending one inside a transaction. From that point the domain resolves to the tenant.
 
-## The DNS your customers need to add
+## DNS records to give your customers
 
-Give customers exact instructions. There are two cases:
+Customers need exact instructions, and there are two cases to cover:
 
 | Customer wants | Record | Points to |
 | --- | --- | --- |
 | A subdomain, e.g. `app.acme.com` | `CNAME` | A host you control, e.g. `domains.your-saas.com` |
 | The root domain, e.g. `acme.com` | `A` (and `AAAA` if you use IPv6) | Your server's IP address |
 
-A `CNAME` is better because you can move servers by changing one record on your side. The DNS standard does not allow a `CNAME` on a root domain, so root domains need `A` records, or an `ALIAS`/`ANAME`-style record if the customer's DNS provider offers one. That is why most SaaS products recommend a subdomain.
+We recommend the `CNAME` route, because you can move servers by changing one record on your side. The DNS standard doesn't allow a `CNAME` on a root domain, so root domains need `A` records, or an `ALIAS`/`ANAME`-style record if the customer's DNS provider offers one. That's why most SaaS products steer customers towards a subdomain.
 
-DNS changes can take a while to spread. Tell customers that, and re-check verification on a schedule instead of once.
+DNS changes can take a while to spread. Say so in your instructions, and re-check verification on a schedule rather than just once.
 
 ## TLS certificates for custom domains
 
-Your wildcard certificate for `*.your-saas.com` does not cover `app.acme.com`. Every custom domain needs its own certificate, issued after the DNS points at you.
+Your wildcard certificate for `*.your-saas.com` doesn't cover `app.acme.com`. Every custom domain needs its own certificate, issued after the DNS points at you. You have three realistic ways to get one:
 
 | Option | How it works | Good for |
 | --- | --- | --- |
@@ -132,7 +129,7 @@ Your wildcard certificate for `*.your-saas.com` does not cover `app.acme.com`. E
 
 ### On-demand TLS with Caddy
 
-The [Caddy](https://caddyserver.com) web server can issue certificates on demand. You must restrict it, or anyone could point a domain at your server and make it request certificates. Caddy's `ask` option calls a URL with `?domain=` and only issues a certificate when the response is a `2xx`:
+The [Caddy](https://caddyserver.com) web server can issue certificates on demand. You have to restrict it, though, or anyone could point a domain at your server and make it request certificates. Caddy's `ask` option calls a URL with `?domain=` and only issues a certificate when the response is a `2xx`:
 
 ```text
 {
@@ -149,7 +146,7 @@ https:// {
 }
 ```
 
-The Laravel route behind it answers one question: is this a verified domain?
+The Laravel route behind it answers a single question: is this a verified domain?
 
 ```php
 Route::get('/internal/domain-check', function (Request $request) {
@@ -159,44 +156,48 @@ Route::get('/internal/domain-check', function (Request $request) {
 });
 ```
 
-Keep that route internal: only reachable from the server itself, and outside your tenant identification middleware. Because only verified domains are in the `domains` table, deleting a row also stops future renewals.
+Keep that route internal. It should only be reachable from the server itself and sit outside your tenant identification middleware. Since only verified domains live in the `domains` table, deleting a row also stops future renewals.
 
 ## Laravel settings that assume one domain
 
-A custom domain is a different site as far as the browser is concerned. Check these:
+As far as the browser is concerned, a custom domain is a different site. A few Laravel settings quietly assume otherwise.
 
-- **Sessions.** Leave `SESSION_DOMAIN` empty. A user signed in on `acme.your-saas.com` is **not** signed in on `app.acme.com`; each host has its own cookie. Pick one main domain per tenant and redirect the other to it.
-- **Trusted hosts.** If you enable `$middleware->trustHosts()`, the default trusts only `APP_URL` and its subdomains, so custom domains are rejected. Pass your own list or a callable, or validate hosts in the web server instead.
-- **Passkeys.** A passkey is bound to its relying party ID. Passkeys registered on `acme.your-saas.com` do not work on `app.acme.com`. See [Passkeys in Laravel](/blog/laravel-passkeys.html) for how the relying party is configured.
-- **Links in emails and queued jobs.** `route()` uses the current host, and in a queue worker that is `APP_URL`. Store a primary domain per tenant and build tenant links from it.
-- **OAuth and webhooks.** Redirect URIs registered with third parties usually have to be exact. Keep those flows on your own domain.
+Sessions come first. Leave `SESSION_DOMAIN` empty. A user signed in on `acme.your-saas.com` is **not** signed in on `app.acme.com`, because each host has its own cookie. Pick one main domain per tenant and redirect the other to it.
+
+Trusted hosts are next. If you enable `$middleware->trustHosts()`, the default trusts only `APP_URL` and its subdomains, so custom domains get rejected. Pass your own list or a callable, or validate hosts in the web server instead.
+
+Passkeys are bound to their relying party ID, so passkeys registered on `acme.your-saas.com` won't work on `app.acme.com`. Our post on [passkeys in Laravel](/blog/laravel-passkeys.html) explains how the relying party is configured.
+
+Links in emails and queued jobs need attention as well. `route()` uses the current host, and in a queue worker that's `APP_URL`. Store a primary domain per tenant and build tenant links from it.
+
+Last, OAuth and webhooks. Redirect URIs registered with third parties usually have to match exactly, so keep those flows on your own domain.
 
 ## Removing or changing a domain
 
-When a customer removes a domain or stops paying, delete the `domains` row. Identification stops immediately, and with on-demand TLS the next renewal is refused because the `ask` check fails.
+When a customer removes a domain or stops paying, delete the `domains` row. Identification stops straight away, and with on-demand TLS the next renewal is refused because the `ask` check fails.
 
-If the domain was the tenant's main domain, switch to another one first. Otherwise emails and redirects keep pointing at a host that no longer works. What happens to the rest of the tenant's data when the whole tenant goes is covered in [Deleting Tenants Safely in Laravel](/blog/delete-tenant-laravel-safely.html).
+If that domain was the tenant's main domain, switch to another one first. Otherwise emails and redirects keep pointing at a host that no longer works. For what happens to the rest of the tenant's data when the whole tenant goes, see [Deleting Tenants Safely in Laravel](/blog/delete-tenant-laravel-safely.html).
 
 ## Frequently asked questions
 
 ### Can a customer use their root domain?
 
-Yes, but they need `A` records pointing at your IP address, or an `ALIAS`/`ANAME` record if their DNS provider supports it, because a root domain cannot be a `CNAME`. If your IP address ever changes, every root-domain customer has to update DNS, so recommend a subdomain like `app.acme.com`.
+Yes, but they'll need `A` records pointing at your IP address, or an `ALIAS`/`ANAME` record if their DNS provider supports one, because a root domain can't be a `CNAME`. If your IP address ever changes, every root-domain customer has to update their DNS. That's why we'd recommend a subdomain like `app.acme.com`.
 
 ### Do I need a separate certificate for every custom domain?
 
-Yes. A wildcard certificate only covers your own domain. Issue one certificate per custom domain, either on demand in the web server, with a job that runs an ACME client, or through a proxy that manages custom hostnames.
+Yes. A wildcard certificate only covers your own domain. You issue one certificate per custom domain, either on demand in the web server, with a job that runs an ACME client, or through a proxy that manages custom hostnames.
 
 ### Can a tenant keep its subdomain after adding a custom domain?
 
-Yes. A tenant can have several rows in the `domains` table, and all of them identify the same tenant. Choose one as the main domain for links and redirect the others to it, so users do not end up signed in on two hosts.
+Yes. A tenant can have several rows in the `domains` table, and they all identify the same tenant. Choose one as the main domain for links and redirect the others to it, so users don't end up signed in on two hosts.
 
-### How do I stop someone from claiming a domain they do not own?
+### How do I stop someone from claiming a domain they don't own?
 
-Only activate a domain after a DNS check proves control, for example a TXT record with a random token. Until then, keep it out of the `domains` table so it cannot identify a tenant or trigger a certificate.
+Only activate a domain after a DNS check proves control, for example a TXT record containing a random token. Until then, keep it out of the `domains` table so it can't identify a tenant or trigger a certificate.
 
 ## Custom domains and SaaS Laravel
 
-The [SaaS Laravel starter kits](/) identify tenants by full host with `InitializeTenancyByDomain`, and each tenant can have several domains with one primary domain and its own app name, language and authentication features. Those domains are always subdomains of `APP_DOMAIN`: `DomainService` appends the central domain to what you enter, so custom domains like `app.acme.com` are not part of the kit. Because lookups already use full hosts, adding them means adding your own validation, ownership verification and TLS setup as described above. See the [Domains documentation](/docs/core/domains.html).
+The [SaaS Laravel starter kits](/) identify tenants by full host with `InitializeTenancyByDomain`. Each tenant can have several domains, with one primary domain and its own app name, language and authentication features. Those domains are always subdomains of `APP_DOMAIN`, though: `DomainService` appends the central domain to whatever you enter, so custom domains like `app.acme.com` aren't part of the kit. Because lookups already use full hosts, adding them comes down to your own validation, ownership verification and TLS setup, as described above. The [Domains documentation](/docs/core/domains.html) has the details.
 
 <BlogPostCta title="Tenant subdomains with their own settings" text="SaaS Laravel gives each tenant one or more subdomains, each with its own app name, language and login options, on Vue, React or Svelte." />

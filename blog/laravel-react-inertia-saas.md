@@ -31,13 +31,13 @@ head:
 
 <BlogPostMeta />
 
-With **Laravel React Inertia**, your Laravel controllers return React components instead of Blade views, and you never build a separate API for your own frontend. This guide walks through the React side of a SaaS app on React 19 and Inertia v3. It covers the folder layout, typed page components, layout props, app-wide providers, search without effects, forms, imperative modals and what the React Compiler changes about memoisation.
+If you like React but don't want to build and maintain a separate API just for your own frontend, Laravel React Inertia is the setup you're after. Your Laravel controllers return React components instead of Blade views, and Inertia handles the glue. I'll walk through the React side of a SaaS app on React 19 and Inertia v3, one piece at a time: the folder layout, typed page components, layout props, app-wide providers, search without effects, forms, imperative modals, and what the React Compiler changes about memoisation.
 
-Still comparing frameworks? The pillar article [Vue, React or Svelte for your Laravel SaaS](/blog/vue-react-or-svelte-laravel-saas.html) covers that. Here we assume React.
+If you haven't picked a framework yet, start with [Vue, React or Svelte for your Laravel SaaS](/blog/vue-react-or-svelte-laravel-saas.html). From here on I'm assuming React.
 
-## Folder layout for a React Inertia app
+## Folder layout for a Laravel React Inertia app
 
-A convention that scales well is kebab-case file names everywhere under `resources/js`:
+One convention that holds up well as the app grows is kebab-case file names everywhere under `resources/js`:
 
 | Folder | Holds | Example |
 | --- | --- | --- |
@@ -47,11 +47,11 @@ A convention that scales well is kebab-case file names everywhere under `resourc
 | `hooks/` | Custom hooks | `hooks/use-permission.ts` |
 | `components/ui/` | shadcn/ui primitives, one file each | `components/ui/dialog.tsx` |
 
-The Inertia page name is the path without the extension. `Inertia::render('users/index')` in PHP renders `pages/users/index.tsx`. The `@inertiajs/vite` plugin builds the page resolver for you, so `createInertiaApp()` in `app.tsx` doesn't need a `resolve` function.
+How does PHP find the right file? The Inertia page name is simply the path without the extension, so `Inertia::render('users/index')` renders `pages/users/index.tsx`. The `@inertiajs/vite` plugin builds the page resolver for you, which means `createInertiaApp()` in `app.tsx` doesn't need a `resolve` function at all.
 
 ## Typed page components
 
-A page is a function component that receives its Inertia props as ordinary React props. Destructure them in the signature so the contract is visible at a glance:
+A page is just a function component that gets its Inertia props as ordinary React props. I like destructuring them in the signature, because then the page's contract is visible at a glance:
 
 ```tsx
 export default function UsersIndex({ users, stats, filters }: UserIndexProps) {
@@ -62,7 +62,7 @@ export default function UsersIndex({ users, stats, filters }: UserIndexProps) {
 }
 ```
 
-`usePage()` has no generic here, yet `props.auth` is fully typed. That comes from a single declaration in `types/global.d.ts`:
+You'll notice `usePage()` has no generic here, and yet `props.auth` is fully typed. That comes from one declaration in `types/global.d.ts`:
 
 ```ts
 declare module '@inertiajs/core' {
@@ -72,13 +72,13 @@ declare module '@inertiajs/core' {
 }
 ```
 
-Page prop types can be written by hand, or generated from spatie/laravel-data classes with `php artisan typescript:transform`.
+For the page prop types themselves, you can write them by hand or generate them from spatie/laravel-data classes with `php artisan typescript:transform`. Generating them means one less thing to keep in sync by hand.
 
 ## Layout props as a static property
 
-Choose the default layout once in `app.tsx`, based on the page name. `auth/*` pages get the auth layout, `settings/*` pages get the app layout plus a settings sub-navigation, and everything else gets the app layout.
+Pick the default layout once in `app.tsx`, based on the page name. Pages under `auth/*` get the auth layout, `settings/*` pages get the app layout plus a settings sub-navigation, and everything else gets the app layout.
 
-A page passes data to that layout, such as breadcrumbs, by assigning a plain object to its `layout` property. Inertia v3 keeps the default layout and hands it the object as props:
+When a page needs to pass data up to that layout, breadcrumbs for example, it assigns a plain object to its `layout` property. Inertia v3 keeps the default layout and hands that object to it as props:
 
 ```tsx
 UsersIndex.layout = {
@@ -89,11 +89,11 @@ UsersIndex.layout = {
 };
 ```
 
-This runs once per module, outside render. For breadcrumbs that depend on page data, call `setLayoutProps()` instead. Nesting and persistence are covered in [persistent layouts in Inertia](/blog/inertia-persistent-layouts.html).
+Keep in mind that this runs once per module, outside render. So if your breadcrumbs depend on page data, use `setLayoutProps()` instead. Nesting and persistence get their own post: [persistent layouts in Inertia](/blog/inertia-persistent-layouts.html).
 
 ## App-wide providers with withApp
 
-Some React components must wrap the whole tree: a tooltip provider, a toaster, maybe a query client. Inertia v3's `withApp` option is the place for them, and `strictMode` turns on React's development checks:
+Some components have to wrap the whole tree: a tooltip provider, a toaster, maybe a query client. In Inertia v3 they go in the `withApp` option, and `strictMode` switches on React's development checks:
 
 ```tsx
 createInertiaApp({
@@ -108,11 +108,11 @@ createInertiaApp({
 });
 ```
 
-Because the `Toaster` lives here, it's also a natural home for a hook that listens to Inertia's `flash` event and shows server messages as toasts. In `useEffect`, return the unsubscribe function from `router.on()` so the listener is removed on unmount. Showing flash data as toasts has its own guide: [flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html).
+Since the `Toaster` lives here, this is also a natural spot for a hook that listens to Inertia's `flash` event and turns server messages into toasts. Inside `useEffect`, return the unsubscribe function from `router.on()` so the listener gets removed on unmount. Turning flash data into toasts is covered step by step in [flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html).
 
 ## Search without an effect
 
-A common React habit is to store the search text in state, debounce it into a second value, and fire the request from `useEffect`. That works, but it adds a render and an effect to track. It's simpler to debounce the request itself, straight from the change handler:
+A lot of React code stores the search text in state, debounces it into a second value, and fires the request from `useEffect`. It works. It also adds an extra render and an effect you have to reason about. I find it simpler to debounce the request itself, right from the change handler:
 
 ```tsx
 const [search, setSearch] = useState(filters.search ?? '');
@@ -130,11 +130,11 @@ const updateSearch = (value: string) => {
 };
 ```
 
-The input stays controlled and instant, and only the server request waits. Inside `useDebounceFn`, keep the latest callback in a ref and build the debounced function once per `delay`. The timer then survives re-renders, and a `cancel()` in the cleanup stops a request after unmount.
+The input stays controlled and responds instantly. Only the server request waits. If you're writing `useDebounceFn` yourself, keep the latest callback in a ref and create the debounced function once per `delay`. That way the timer survives re-renders, and a `cancel()` in the cleanup stops a request from firing after unmount.
 
 ## Forms: useForm or the Form component
 
-For forms where React owns the values, such as a settings screen of clickable cards, `useForm` returns everything you need to destructure:
+When React owns the values, as on a settings screen made of clickable cards, `useForm` gives you everything you need to destructure:
 
 ```tsx
 const { data, setData, patch, processing, isDirty, reset, setDefaults } = useForm({
@@ -147,11 +147,11 @@ const submit = (event: FormEvent<HTMLFormElement>) => {
 };
 ```
 
-Calling `setDefaults()` after success makes the saved data the new baseline, so `isDirty` resets. For ordinary inputs, the `Form` component is shorter: spread a Wayfinder action such as `{...store.form()}` onto it and read `errors` and `processing` from its render-prop children. The details are in [the Inertia Form component guide](/blog/inertia-form-component.html).
+If you're wondering why `setDefaults()` is there: calling it after a successful save makes the saved data the new baseline, so `isDirty` goes back to false. For ordinary inputs I'd reach for the `Form` component instead, since it's shorter. Spread a Wayfinder action such as `{...store.form()}` onto it and read `errors` and `processing` from its render-prop children. There's more in [the Inertia Form component guide](/blog/inertia-form-component.html).
 
 ## Imperative modals with ref as a prop
 
-React 19 passes `ref` to function components like any other prop, so `forwardRef` is no longer needed. A create or edit modal can expose `open()` with `useImperativeHandle`:
+React 19 passes `ref` to function components like any other prop, so you don't need `forwardRef` any more. A create or edit modal can expose an `open()` method with `useImperativeHandle`:
 
 ```tsx
 export interface UserFormModalHandle {
@@ -169,46 +169,47 @@ export default function UserFormModal({ ref }: { ref?: Ref<UserFormModalHandle> 
 }
 ```
 
-The page keeps `useRef<UserFormModalHandle>(null)` and calls `modalRef.current?.open(user)`. Pass `key={selected?.id ?? 'create'}` to the form inside, so React mounts a clean form when switching between records.
+On the page side, keep a `useRef<UserFormModalHandle>(null)` and call `modalRef.current?.open(user)`. One small detail saves a lot of confusion: pass `key={selected?.id ?? 'create'}` to the form inside the modal. React then mounts a fresh form when you switch between records, instead of carrying old values over.
 
 ## The React Compiler and memoisation
 
-With `babel-plugin-react-compiler` added to `@vitejs/plugin-react` in `vite.config.ts`, the compiler memoises components and values automatically. In practice you write plain derived values instead of wrapping them in `useMemo`:
+Once `babel-plugin-react-compiler` is added to `@vitejs/plugin-react` in `vite.config.ts`, the compiler memoises components and values for you. Day to day, that means writing plain derived values instead of wrapping them in `useMemo`:
 
 ```tsx
 const isEditing = selected !== null;
 const title = isEditing ? __('Edit user') : __('Add user');
 ```
 
-Keep following the rules of React: no conditional hooks and no mutation of props or state. The compiler skips components that break them. Reach for `useMemo` or `useCallback` only when profiling shows a problem the compiler didn't solve.
+You still need to follow the rules of React: no conditional hooks, and no mutating props or state. Components that break those rules are skipped by the compiler. I'd only reach for `useMemo` or `useCallback` when profiling shows a problem the compiler didn't handle.
 
 ## Pitfalls to avoid
 
-- **Hiding UI is not authorisation.** A `usePermission()` hook can hide buttons, but Laravel middleware and policies must still reject the request.
-- **Hard-coded URLs.** Wayfinder helpers like `index.url()` break the TypeScript build when a route changes, instead of breaking in production.
-- **Double requests in development.** Strict mode runs effects twice in development. Code that works only once, such as subscriptions, needs a cleanup.
-- **Type checks in CI.** Run `tsc --noEmit` together with ESLint, so prop mismatches fail the build.
+The big one is treating hidden UI as authorisation. A `usePermission()` hook is great for hiding buttons, but Laravel middleware and policies still have to reject the request. Anyone can send a request without clicking your button.
+
+Hard-coded URLs are the next thing I'd avoid. With Wayfinder helpers like `index.url()`, a changed route breaks the TypeScript build instead of breaking in production.
+
+Don't be alarmed by double requests in development, either. Strict mode runs effects twice in dev, so anything that should only happen once, like a subscription, needs a cleanup function. And run `tsc --noEmit` alongside ESLint in CI, so prop mismatches fail the build rather than reaching users.
 
 ## Frequently asked questions
 
 ### Do I need React Router with Laravel and Inertia?
 
-No. Laravel defines every route, and Inertia turns link clicks and form submissions into page visits. Adding React Router would give you a second, conflicting router.
+No. Laravel defines every route, and Inertia turns link clicks and form submissions into page visits. Adding React Router would give you a second router fighting with the first.
 
 ### Can a Laravel React Inertia app render on the server?
 
-Yes. Inertia supports server-side rendering with a separate SSR build (`vite build --ssr`) and a small Node process. Many dashboards behind a login don't need it, so start without SSR and add it for public pages if search engines matter.
+Yes. Inertia supports server-side rendering with a separate SSR build (`vite build --ssr`) and a small Node process. Plenty of dashboards behind a login don't need it, so I'd start without SSR and add it for public pages if search engines matter to you.
 
 ### Should I add Redux or Zustand?
 
-Usually not at first. Server data arrives as page props on every visit, so there is little client state to manage. Add a store only for client-only state shared by several pages, such as an open command palette.
+Usually not at first. Server data arrives as page props on every visit, so there's very little client state to manage. Add a store only for client-only state that several pages share, such as an open command palette.
 
 ### Is the React Compiler safe to use in production?
 
-Yes. The React team released the compiler as stable, and it works on standard React 19 code. Components that break the rules of React are skipped rather than miscompiled.
+Yes. The React team released the compiler as stable, and it works on standard React 19 code. Components that break the rules of React are skipped, not miscompiled.
 
 ## How SaaS Laravel does it in React
 
-The [SaaS Laravel React kit](/kits/react.html) uses React 19 and Inertia v3 with the structure above. Pages such as `pages/users/index.tsx` set breadcrumbs with `UsersIndex.layout`, `app.tsx` wraps the app in `TooltipProvider` and `Toaster` through `withApp`, and modals like `user-form-modal.tsx` expose `open()` through a ref prop. The React Compiler is enabled in `vite.config.ts`, and `npm run lint` runs ESLint, Prettier and `tsc --noEmit`. The [React kit documentation](/docs/react.html) describes every page, layout and hook.
+If you'd rather start from working code, the [SaaS Laravel React kit](/kits/react.html) uses React 19 and Inertia v3 with the structure described above. Pages such as `pages/users/index.tsx` set breadcrumbs with `UsersIndex.layout`, `app.tsx` wraps the app in `TooltipProvider` and `Toaster` through `withApp`, and modals like `user-form-modal.tsx` expose `open()` through a ref prop. The React Compiler is enabled in `vite.config.ts`, and `npm run lint` runs ESLint, Prettier and `tsc --noEmit`. Every page, layout and hook is described in the [React kit documentation](/docs/react.html).
 
 <BlogPostCta title="Build your SaaS in React, not from zero" text="The SaaS Laravel React kit ships React 19 and Inertia v3 pages for users, roles, tenants and settings, with shadcn/ui components and typed routes." />

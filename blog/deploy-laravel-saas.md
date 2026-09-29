@@ -31,7 +31,7 @@ head:
 
 <BlogPostMeta />
 
-To **deploy a Laravel SaaS** you need everything a normal Laravel app needs, plus a few things that only show up with multi-tenancy: wildcard subdomains, a database user that can create databases, and migrations that run once per tenant. This guide walks through the server setup, a deploy script you can adapt, tenant migrations, queue workers, the scheduler, and how to avoid downtime. It assumes a database-per-tenant app with tenants on subdomains.
+When you deploy a Laravel SaaS, you need everything a normal Laravel app needs. Multi-tenancy then adds a few things of its own: wildcard subdomains, a database user that's allowed to create databases, and migrations that run once for every tenant. Below I go through the server, a deploy script you can adapt, tenant migrations, queue workers, the scheduler and how I'd avoid downtime. I'm assuming a database-per-tenant app with tenants on subdomains.
 
 ## What the production server needs
 
@@ -45,11 +45,11 @@ To **deploy a Laravel SaaS** you need everything a normal Laravel app needs, plu
 | A real mail transport | Invitations and password resets must arrive |
 | Wildcard DNS and a wildcard TLS certificate | Every new tenant gets a subdomain without manual setup |
 
-The database permission catches many people out. On managed databases the default user often can't `CREATE DATABASE`. Test it before your first customer signs up, not after.
+The database permission is the one that catches people out. On managed databases, the default user often can't run `CREATE DATABASE`. **Test it before your first customer signs up**, not after.
 
 ## Wildcard DNS and TLS for tenant subdomains
 
-Point both `your-saas.com` and `*.your-saas.com` at the server, then serve both from one nginx server block:
+Point both `your-saas.com` and `*.your-saas.com` at the server. One nginx server block can then serve both:
 
 ```nginx
 server {
@@ -69,14 +69,14 @@ server {
 }
 ```
 
-Let's Encrypt only issues wildcard certificates through the DNS-01 challenge, so use a certbot DNS plugin for your provider. Renewals then run on their own:
+Let's Encrypt only issues wildcard certificates through the DNS-01 challenge, so you'll need the certbot DNS plugin for your provider. Once that's in place, renewals run on their own:
 
 ```bash
 certbot certonly --dns-cloudflare --dns-cloudflare-credentials ~/.secrets/cloudflare.ini \
   -d your-saas.com -d "*.your-saas.com"
 ```
 
-How tenant identification, central domains and cookies fit together is covered in [Laravel multi-tenancy with subdomains](/blog/laravel-multi-tenancy-subdomains.html).
+Tenant identification, central domains and cookies are a topic of their own. I cover how they fit together in [Laravel multi-tenancy with subdomains](/blog/laravel-multi-tenancy-subdomains.html).
 
 ## Production environment settings
 
@@ -89,11 +89,11 @@ How tenant identification, central domains and cookies fit together is covered i
 | `SESSION_SECURE_COOKIE` | `true` | Cookies are only sent over HTTPS |
 | `MAIL_MAILER` | `smtp` or an API transport | So queued emails are delivered |
 
-Keep the `.env` file outside version control and back it up separately. Losing `APP_KEY` means losing everything encrypted with it.
+Keep `.env` out of version control and back it up separately. If you lose `APP_KEY`, you lose everything that was encrypted with it.
 
 ## A script to deploy a Laravel SaaS, step by step
 
-The order matters. Build assets before caching routes, and migrate the central database before the tenants:
+Order matters here. Build assets before you cache routes, and migrate the central database before the tenants:
 
 ```bash
 set -e
@@ -108,23 +108,23 @@ php artisan optimize
 php artisan reload
 ```
 
-- `set -e` stops the script at the first failure, so a failed migration never reaches `optimize`.
-- `optimize:clear` removes stale config and route caches. Build tools that read your routes, such as the Wayfinder Vite plugin, then see the current ones.
-- `php artisan optimize` caches config, events, routes and views.
-- `php artisan reload` runs `queue:restart` and `schedule:interrupt`, so workers pick up the new code.
+A few of those lines deserve a note. `set -e` stops the script at the first failure, so a failed migration never reaches `optimize`. `optimize:clear` throws away stale config and route caches, which means build tools that read your routes (the Wayfinder Vite plugin, for example) see the current ones.
+
+Near the end, `php artisan optimize` caches config, events, routes and views again. Then `php artisan reload` runs `queue:restart` and `schedule:interrupt`, so workers pick up the new code.
 
 ## Where tenant migrations fit in the deploy
 
-`php artisan tenants:migrate` from stancl/tenancy runs your tenant migrations against every tenant database, one after the other, and stancl's default config already passes `--force`. In a deploy, two things matter:
+`php artisan tenants:migrate` comes from stancl/tenancy. It runs your tenant migrations against every tenant database, one after the other, and stancl's default config already passes `--force`. Two things about it matter during a deploy.
 
-- **It gets slower with every customer.** Ten tenants take seconds; a thousand can take minutes, and during that window some tenants already have the new schema. Write backwards-compatible migrations so both versions of your code work.
-- **It runs before `reload`.** With `set -e`, a failing tenant stops the script, and workers keep running the old code until you fix the problem and run the deploy again.
+It gets slower with every customer. Ten tenants take seconds; a thousand can take minutes, and during that window some tenants already have the new schema while others don't. That's why I write backwards-compatible migrations, so both versions of the code keep working.
 
-For risky changes, migrate a couple of tenants first as a canary with `php artisan tenants:migrate --tenants=1 --tenants=2`. Safe migration patterns and recovering from a half-finished run are covered in [tenant migrations and seeders in Laravel](/blog/laravel-tenant-migrations-seeders.html).
+It also runs before `reload`. With `set -e`, a failing tenant stops the script, and workers keep running the old code until you fix the problem and deploy again. I'd much rather have that than workers on new code talking to a half-migrated schema.
+
+For risky changes, migrate a couple of tenants first as a canary with `php artisan tenants:migrate --tenants=1 --tenants=2`. Safe migration patterns, and how to recover from a half-finished run, are in [tenant migrations and seeders in Laravel](/blog/laravel-tenant-migrations-seeders.html).
 
 ## Queue workers with Supervisor
 
-Queue workers are long-running processes, so a process manager restarts them when they crash or when the server reboots. A Supervisor config:
+Queue workers are long-running processes. Something has to restart them when they crash or when the server reboots, and that's the process manager's job. Here's a Supervisor config:
 
 ```ini
 [program:your-saas-worker]
@@ -141,17 +141,17 @@ stdout_logfile=/var/www/your-saas/storage/logs/worker.log
 stopwaitsecs=3600
 ```
 
-If queued jobs are stored on the central connection, one pool of workers handles every tenant, and stancl's queue bootstrapper restores the right tenant when each job runs. Workers keep old code in memory, which is why the deploy script ends with `reload`.
+If queued jobs are stored on the central connection, one pool of workers handles every tenant. stancl's queue bootstrapper restores the right tenant when each job runs. Workers do keep old code in memory, though, which is why the deploy script ends with `reload`.
 
 ## The scheduler
 
-Add one cron entry for the whole app:
+One cron entry covers the whole app:
 
 ```bash
 * * * * * cd /var/www/your-saas && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Scheduled tasks run in the central context. To run a command for each tenant, wrap it in `tenants:run`:
+Scheduled tasks run in the central context. When a command has to run for each tenant, wrap it in `tenants:run`:
 
 ```php
 Schedule::command('tenants:run reports:send')
@@ -160,36 +160,38 @@ Schedule::command('tenants:run reports:send')
     ->onOneServer();
 ```
 
-`onOneServer()` needs a cache store that supports locks (database, Redis, Memcached or DynamoDB) shared by all servers. Without it, two servers would both send the reports.
+`onOneServer()` needs a cache store that supports locks (database, Redis, Memcached or DynamoDB), shared by all your servers. Without it, two servers would both send the reports.
 
 ## Avoiding downtime
 
-The script above updates files in place, so for a few seconds requests can hit a half-updated app. Zero-downtime deploys fix this by building each release in its own directory and switching a `current` symlink once everything is ready. Tools such as Deployer, Envoyer or your hosting platform automate the pattern.
+The script above updates files in place, so for a few seconds requests can hit a half-updated app. Zero-downtime deploys fix that. Each release is built in its own directory, and a `current` symlink switches over once everything is ready. Deployer, Envoyer or your hosting platform can automate the pattern, and once real customers depend on the app I think it's worth setting up.
 
-Two things must be shared between releases: the `.env` file and the whole `storage` directory. With stancl's filesystem bootstrapper, each tenant's files live in their own folder under `storage`, so a fresh `storage` per release would appear to lose every upload.
+Two things have to be shared between releases: the `.env` file and the whole `storage` directory. Don't skip the second one. With stancl's filesystem bootstrapper, each tenant's files live in their own folder under `storage`, so a fresh `storage` per release would look as if every upload had vanished.
 
-For product, legal and support readiness before launch day, use the [Laravel SaaS launch checklist](/blog/laravel-saas-launch-checklist.html). If you haven't picked a foundation yet, the [Laravel SaaS starter kit buyer's guide](/blog/laravel-saas-starter-kit.html) covers what to look for.
+The server is only one part of launch day. For product, legal and support readiness, go through the [Laravel SaaS launch checklist](/blog/laravel-saas-launch-checklist.html). And if you haven't picked a foundation yet, my [buyer's guide to Laravel SaaS starter kits](/blog/laravel-saas-starter-kit.html) covers what to look for.
 
 ## Frequently asked questions
 
 ### Can I deploy a multi-tenant Laravel app to shared hosting?
 
-Rarely. You need wildcard subdomains, a database user that can create databases and long-running queue workers. Most shared hosts don't allow all three, so a VPS or a managed platform is the practical choice.
+Rarely. You need wildcard subdomains, a database user that can create databases and long-running queue workers. Most shared hosts won't give you all of them, so I'd go straight to a VPS or a managed platform.
 
 ### Should tenant migrations run in the deploy script?
 
-For most apps, yes: running them in the script means a failure stops the deploy before workers restart. With thousands of tenants, some teams move them to queued jobs, but then they must track which tenants are finished.
+For most apps, yes. Running them in the script means a failure stops the deploy before workers restart. Some teams with thousands of tenants move them to queued jobs instead, but then they have to track which tenants are finished.
 
 ### How do I roll back a bad deploy?
 
-Switch the `current` symlink back to the previous release and run `php artisan reload`. Rolling back migrations across every tenant is slow and risky, which is one more reason to keep migrations backwards compatible, so old code still runs on the new schema.
+Switch the `current` symlink back to the previous release and run `php artisan reload`. Rolling back migrations across every tenant is slow and risky. That's one more reason to keep migrations backwards compatible, so the old code still runs on the new schema.
 
 ### Why does a new tenant subdomain show a certificate error?
 
-Your certificate probably only covers the main domain. Issue a wildcard certificate for `*.your-saas.com` through the DNS-01 challenge. A wildcard covers one level of subdomains only.
+Your certificate probably only covers the main domain. Issue a wildcard certificate for `*.your-saas.com` through the DNS-01 challenge. Keep in mind that a wildcard only covers one level of subdomains.
 
 ## Deploying SaaS Laravel
 
-The SaaS Laravel kits document their production needs in the [requirements](/docs/getting-started/requirements.html): PHP 8.3 or newer, a web server that routes the central domain and `*.your-domain.com`, wildcard DNS, a database user that can create tenant databases, `php artisan queue:work`, and a real mailer. The central domain is set with `APP_DOMAIN`. Tenant migrations live in `database/migrations/tenant` and run with `php artisan tenants:migrate`. Queued jobs are stored in the central `jobs` table, so one worker serves every tenant. `npm run build` runs `wayfinder:generate` through the Vite plugin, so PHP and Composer dependencies must be installed where you build. The kits don't define any scheduled tasks yet, and the seeded default users must be removed or changed before going live.
+If you'd rather start from something that already spells this out, the SaaS Laravel kits list their production needs in the [requirements](/docs/getting-started/requirements.html): PHP 8.3 or newer, a web server that routes the central domain and `*.your-domain.com`, wildcard DNS, a database user that can create tenant databases, `php artisan queue:work`, and a real mailer. You set the central domain with `APP_DOMAIN`. Tenant migrations live in `database/migrations/tenant` and run with `php artisan tenants:migrate`. Queued jobs go into the central `jobs` table, so one worker serves every tenant.
+
+One thing to watch: `npm run build` runs `wayfinder:generate` through the Vite plugin, so PHP and Composer dependencies must be installed wherever you build. The kits don't define any scheduled tasks yet, and you should remove or change the seeded default users before going live.
 
 <BlogPostCta title="Start from a deployable SaaS" text="SaaS Laravel ships database-per-tenant multi-tenancy, a central queue for all tenants and documented production requirements, in Vue, React or Svelte." />

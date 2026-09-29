@@ -31,13 +31,13 @@ head:
 
 <BlogPostMeta />
 
-A sidebar that shows "Billing" to someone who gets a 403 after clicking it looks broken. Handling **Laravel Inertia permissions on the frontend** well starts with the navigation: every user should see only the pages they can actually open.
+A sidebar that shows "Billing" to someone who then gets a 403 after clicking it looks broken. If you want to handle Laravel Inertia permissions on the frontend properly, I'd start with the navigation, because it's the first thing every user sees. Permission-based menus mean each user sees only the pages they can actually open.
 
-This guide shows how to give each menu item a required permission, filter the menu in PHP, share it as an Inertia prop, mark the active item and render it in Vue, React or Svelte without copying authorization rules into JavaScript.
+Below I give each menu item a required permission, filter the menu in PHP, share it as an Inertia prop, mark the active item and render it in Vue, React or Svelte. None of it copies authorization rules into JavaScript.
 
 ## Why filter the menu on the server
 
-There are two ways to build a permission-aware menu. You can send the whole menu plus the user's permissions and filter in the browser, or you can filter in PHP and send only what the user may see.
+There are two ways to build a permission-aware menu. You can send the whole menu plus the user's permissions and filter in the browser. Or you can filter in PHP and send only what the user may see.
 
 | | Filter in the browser | Filter on the server |
 | --- | --- | --- |
@@ -46,16 +46,15 @@ There are two ways to build a permission-aware menu. You can send the whole menu
 | Super admin and policy rules | Must be re-implemented | Applied automatically by `$user->can()` |
 | Frontend code | Loops plus permission checks | Just a loop |
 
-Server-side filtering wins for navigation. `$user->can()` goes through Laravel's Gate, so Spatie permissions, a [super admin rule](/blog/laravel-super-admin-role.html) in `Gate::before` and your policies all count without extra code. If you are new to the package itself, start with [Laravel Roles and Permissions with Spatie](/blog/laravel-roles-permissions-spatie.html).
+For navigation I filter on the server, every time. `$user->can()` goes through Laravel's Gate, so Spatie permissions, a [super admin rule](/blog/laravel-super-admin-role.html) in `Gate::before` and your policies all count without extra code. If the package itself is new to you, start with [Laravel Roles and Permissions with Spatie](/blog/laravel-roles-permissions-spatie.html).
 
 ## Describe each menu item with a permission
 
-Every item needs a label, a route name, an optional icon, an optional required permission and optional children. You can keep the definition in a config file or in a database table.
+Each item needs a label and a route name, plus an optional icon, an optional required permission and optional children. The definition can live in a config file or in a database table.
 
-- **A config file** lives in git, gets reviewed in pull requests and needs no migration. It fits when the menu only changes when the code changes.
-- **A database table** lets admins reorder or regroup items at runtime. Seed the defaults with `updateOrCreate()` on a unique slug so re-running the seeder is safe.
+A config file lives in git, gets reviewed in pull requests and needs no migration. It fits when the menu only changes when the code does. A database table lets admins reorder or regroup items at runtime; if you go that way, seed the defaults with `updateOrCreate()` on a unique slug so re-running the seeder is safe. I'd start with config and only move to a table once admins really need to rearrange things.
 
-Here is the config version:
+Here's the config version:
 
 ```php
 // config/navigation.php
@@ -73,11 +72,11 @@ return [
 ];
 ```
 
-Store **route names**, not URLs. The URL is resolved with `route()` at request time, so changing a URI never breaks the menu, and the route name tells you which middleware protects the page. An item without a `permission` key is visible to every signed-in user.
+Store **route names, not URLs**. The URL is resolved with `route()` at request time, so changing a URI never breaks the menu, and the route name tells you which middleware protects the page. An item without a `permission` key shows up for every signed-in user.
 
 ## Build the visible tree in a service
 
-A small service walks the items, drops the ones the user can't access and removes groups that end up empty:
+A small service walks the items, drops the ones the user can't access and removes any group that ends up empty:
 
 ```php
 class NavigationBuilder
@@ -94,7 +93,7 @@ class NavigationBuilder
 }
 ```
 
-Each surviving item becomes a plain array for the frontend. Children go through the same `build()` call first:
+Every item that survives becomes a plain array for the frontend. Its children go through the same `build()` call first:
 
 ```php
 protected function node(User $user, array $item): array
@@ -111,15 +110,13 @@ protected function node(User $user, array $item): array
 }
 ```
 
-Three details matter here:
+Because of the recursion, nested groups follow the same rules as top-level items. Empty groups disappear too. A "Projects" heading with no visible children is just noise, so `reject()` removes nodes that have neither a link nor children.
 
-1. **Recursion** handles nested groups with the same rules as top-level items.
-2. **Empty groups disappear.** A "Projects" heading with no visible children is just noise, so `reject()` removes nodes that have neither a link nor children.
-3. **`values()` is not optional.** `filter()` keeps the original array keys. Without re-indexing, a list like `[0 => ..., 2 => ...]` is encoded as a JSON *object*, and your `v-for` or `.map()` gets confused.
+The part people usually get wrong is `values()`. **It isn't optional.** `filter()` keeps the original array keys, and without re-indexing, a list like `[0 => ..., 2 => ...]` is encoded as a JSON *object*. Your `v-for` or `.map()` then gets confused.
 
 ## Mark the active item on the server
 
-Comparing URLs in the browser breaks as soon as a page has a query string or a child route such as `/projects/42/edit`. Route names are more reliable. Laravel's `routeIs()` accepts several names and wildcards, so an item can list extra routes that should highlight it:
+Comparing URLs in the browser breaks as soon as a page has a query string or a child route such as `/projects/42/edit`. Route names hold up better. Laravel's `routeIs()` accepts several names and wildcards, so an item can list extra routes that should highlight it:
 
 ```php
 protected function isActive(array $item): bool
@@ -130,7 +127,7 @@ protected function isActive(array $item): bool
 }
 ```
 
-With `'active' => ['projects.show', 'projects.edit']`, "All projects" stays highlighted while someone looks at or edits a project. A wildcard such as `projects.*` works too, but it would also match `projects.create` and highlight two items at once. Because `node()` marks a parent as active when one of its children is, collapsible groups open on the right page.
+With `'active' => ['projects.show', 'projects.edit']`, "All projects" stays highlighted while someone views or edits a project. A wildcard such as `projects.*` works too, but it would also match `projects.create` and highlight two items at once, so I'd rather list the routes. And since `node()` marks a parent as active when one of its children is, collapsible groups open on the right page.
 
 ## Share the menu as an Inertia prop
 
@@ -148,7 +145,7 @@ public function share(Request $request): array
 }
 ```
 
-Guests get an empty array. Because the menu is rebuilt on every full Inertia visit, a permission change shows up on the user's next navigation, without signing out. Partial reloads that ask for other props with `only` skip the closure entirely.
+Guests get an empty array. The menu is rebuilt on every full Inertia visit, so a permission change shows up on the user's next navigation without them having to sign out. Partial reloads that ask for other props with `only` skip the closure entirely.
 
 ## Render the menu in Vue, React or Svelte
 
@@ -164,7 +161,7 @@ export type NavItem = {
 };
 ```
 
-The component then has nothing to decide. It loops and renders:
+After that, the component has nothing left to decide. It loops and renders:
 
 ```vue
 <script setup lang="ts">
@@ -184,14 +181,11 @@ const page = usePage<{ navigation: NavItem[] }>();
 </template>
 ```
 
-React reads the same prop with `usePage().props.navigation` and Svelte with the page store from `@inertiajs/svelte`. None of them contain a single permission check. If you already describe your PHP data with classes, you can [generate the TypeScript types from PHP](/blog/laravel-typescript-types-from-php.html) instead of writing `NavItem` by hand.
+React reads the same prop with `usePage().props.navigation`, and Svelte uses the page store from `@inertiajs/svelte`. Not one of them contains a permission check. If you already describe your PHP data with classes, you can [generate the TypeScript types from PHP](/blog/laravel-typescript-types-from-php.html) instead of writing `NavItem` by hand.
 
 ## Buttons and actions inside a page
 
-Navigation is only half of the frontend. For "New project" or "Delete" buttons, you have two options:
-
-- Share the user's permission names and use a small `can()` helper, as shown in the [Spatie permissions guide](/blog/laravel-roles-permissions-spatie.html).
-- Send page-specific abilities from the controller. This also covers policies that depend on the record:
+Navigation is only half of the frontend. For buttons like "New project" or "Delete", you can share the user's permission names and use a small `can()` helper, as shown in the [Spatie permissions guide](/blog/laravel-roles-permissions-spatie.html). Or you can send page-specific abilities from the controller, which also covers policies that depend on the record:
 
 ```php
 return Inertia::render('projects/Show', [
@@ -203,11 +197,11 @@ return Inertia::render('projects/Show', [
 ]);
 ```
 
-The second option keeps rules like "only the owner can delete" on the server, where they belong.
+I prefer the second option. It keeps rules like "only the owner can delete" on the server, where they belong.
 
 ## Keep menus and routes in sync
 
-A menu permission that differs from the route's middleware creates the two bugs you're trying to avoid: links that end in a 403, or pages nobody can find. Use this checklist when you add a page:
+When a menu permission doesn't match the route's middleware, you get exactly the two bugs you set out to avoid: links that end in a 403, or pages nobody can find. Go through this checklist whenever you add a page:
 
 | Check | Why |
 | --- | --- |
@@ -224,18 +218,18 @@ No. Removing the link only changes what the user sees. Protect every route with 
 
 ### Should I send all of a user's permissions to the frontend?
 
-Only if your pages need them for buttons. For navigation, sending the filtered menu is enough. Permission names are not secret, but a shorter payload and fewer rules in JavaScript make the frontend simpler.
+Only if your pages need them for buttons. For navigation, the filtered menu is enough. Permission names aren't secret, but a smaller payload and fewer rules in JavaScript keep the frontend simpler.
 
 ### Can I cache the menu with Inertia's once props?
 
-Inertia v3 can remember a prop across navigations with `Inertia::once()` or `shareOnce()`. The catch is freshness: a user whose role changes keeps the old menu until the prop expires or the page is fully reloaded. Building a small menu is cheap, so a normal lazy prop is usually the better trade.
+Inertia v3 can remember a prop across navigations with `Inertia::once()` or `shareOnce()`. The catch is freshness. A user whose role changes keeps the old menu until the prop expires or the page is fully reloaded. Building a small menu is cheap, so I'd stick with a normal lazy prop.
 
 ### How do I translate menu labels?
 
-Translate on the server while building the tree, for example by passing each label through `__()` with JSON translation files, or by giving items a key such as `nav.projects` with the stored title as fallback. The frontend then receives ready-to-show text. See [Laravel translations in Inertia apps](/blog/laravel-inertia-translations.html) for the rest of the UI.
+Translate on the server while you build the tree. You can pass each label through `__()` with JSON translation files, or give items a key such as `nav.projects` with the stored title as a fallback. Either way the frontend receives text that's ready to show. For the rest of the UI, see [Laravel translations in Inertia apps](/blog/laravel-inertia-translations.html).
 
 ## How SaaS Laravel builds permission-based menus
 
-The [SaaS Laravel starter kits](/) store navigation in a `menus` table, one in the central database and one in each tenant database. Every row has an optional `permission` column, and `MenuService` drops the items and children the user can't access with `$user->can()`, marks the active item from `route_name` plus an `active` list of route patterns, and translates labels from `modules/common.nav.*`. The result is shared as lazy `menus` and `setupMenus` props, so the Vue, React and Svelte sidebars only loop over what they receive. Admins can drag and drop items under **Setup → Menus**, which requires `Reorder Navigation Menus` (or `Reorder Tenant Menus`), and reset them to the seeded defaults. See [navigation and layouts](/docs/core/navigation-and-layouts.html#database-driven-menus) in the docs.
+If you'd rather not build this yourself, the [SaaS Laravel starter kits](/) already do it. Navigation lives in a `menus` table, one in the central database and one in each tenant database. Every row has an optional `permission` column, and `MenuService` drops the items and children the user can't access with `$user->can()`, marks the active item from `route_name` plus an `active` list of route patterns, and translates labels from `modules/common.nav.*`. The result is shared as lazy `menus` and `setupMenus` props, so the Vue, React and Svelte sidebars only loop over what they receive. Admins can drag and drop items under **Setup → Menus**, which requires `Reorder Navigation Menus` (or `Reorder Tenant Menus`), and reset them to the seeded defaults. See [navigation and layouts](/docs/core/navigation-and-layouts.html#database-driven-menus) in the docs.
 
 <BlogPostCta title="Menus that respect permissions" text="SaaS Laravel ships database-driven menus filtered by Spatie permissions on the server, with drag-and-drop ordering, in Vue, React or Svelte." />

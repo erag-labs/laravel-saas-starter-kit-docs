@@ -31,17 +31,13 @@ head:
 
 <BlogPostMeta />
 
-**shadcn** has become the default way to build admin and SaaS interfaces, and it works in a **Laravel** app with Inertia just as well as in a JavaScript meta-framework. There are three flavours: shadcn/ui for React, shadcn-vue and shadcn-svelte. This guide explains how each one fits a Laravel project: where the files go, what `components.json` needs, how theming works with Tailwind CSS v4, and how to connect the components to Laravel validation errors.
+Most shadcn tutorials assume a JavaScript meta-framework, so if you're building on Laravel it's fair to wonder whether it fits. It does. shadcn has become the default way to build admin and SaaS interfaces, and it works just as well in a Laravel app with Inertia. There are three flavours: shadcn/ui for React, shadcn-vue and shadcn-svelte. I'll go through how each one fits a Laravel project: where the files go, what `components.json` needs, how theming works with Tailwind CSS v4, and how to connect the components to Laravel validation errors.
 
 ## What shadcn actually is
 
-shadcn is not a component library you install and import from `node_modules`. It's a collection of components that a CLI copies into your project as source files. You own the code, you can change any class or prop, and nothing breaks when a package updates.
+If you're expecting a component library you install and import from `node_modules`, shadcn isn't that. It's a collection of components that a CLI copies into your project as source files. You own the code. You can change any class or prop, and nothing breaks when a package updates.
 
-Each component combines three things:
-
-- **An unstyled, accessible primitive**, such as a dialog, select or dropdown, that handles focus and keyboard behaviour
-- **Tailwind classes** that give it the look
-- **CSS variables** for colours and radius, so one theme change restyles everything
+Each component is built from a few layers. Underneath is an unstyled, accessible primitive (a dialog, select or dropdown, say) that handles focus and keyboard behaviour. Tailwind classes on top give it the look. And CSS variables hold the colours and radius, so one theme change restyles everything.
 
 ## The three ports compared
 
@@ -54,11 +50,11 @@ Each component combines three things:
 | Toasts | `sonner` | `vue-sonner` | `svelte-sonner` |
 | Icons | `lucide-react` | `@lucide/vue` | `lucide-svelte` |
 
-The component names and the visual result are nearly identical across the three. Only the syntax and the primitives underneath change. For choosing the framework itself, see [Vue, React or Svelte for your Laravel SaaS](/blog/vue-react-or-svelte-laravel-saas.html).
+Across the three, the component names and the visual result are nearly identical. What changes is the syntax and the primitives underneath. If you haven't chosen the framework yet, [Vue, React or Svelte for your Laravel SaaS](/blog/vue-react-or-svelte-laravel-saas.html) may help.
 
 ## How shadcn fits a Laravel project
 
-The only real difference from a standalone Vite app is the path: your frontend lives in `resources/js`, and the stylesheet in `resources/css/app.css`. The CLI needs a path alias to write imports like `@/components/ui/button`, so declare it in `tsconfig.json`:
+Compared with a standalone Vite app, the only real difference is the path. Your frontend lives in `resources/js`, and the stylesheet in `resources/css/app.css`. The CLI needs a path alias to write imports like `@/components/ui/button`, so declare it in `tsconfig.json`:
 
 ```json
 {
@@ -69,11 +65,11 @@ The only real difference from a standalone Vite app is the path: your frontend l
 }
 ```
 
-Laravel's Vite plugin already maps `@` to `resources/js`, so imports resolve at build time. The `tsconfig.json` entry makes the editor and the CLI agree.
+You might be wondering why that's needed when Laravel's Vite plugin already maps `@` to `resources/js`. The Vite mapping is what makes imports resolve at build time. The `tsconfig.json` entry is for your editor and the CLI, so all three agree.
 
 ## Configuring components.json
 
-`components.json` at the project root tells the CLI where things go. A Laravel setup for shadcn-vue looks like this:
+`components.json` sits at the project root and tells the CLI where things go. Here's a Laravel setup for shadcn-vue:
 
 ```json
 {
@@ -90,16 +86,15 @@ Laravel's Vite plugin already maps `@` to `resources/js`, so imports resolve at 
 }
 ```
 
-Port-specific details worth knowing:
+A few details differ by port. The one that applies everywhere: Tailwind v4 has no config file, so leave `tailwind.config` empty, because the theme lives in CSS.
 
-- **Tailwind v4 has no config file.** Leave `tailwind.config` empty, because the theme lives in CSS.
-- **React** adds `"tsx": true` and `"rsc": false`, since Inertia pages aren't React Server Components. It also has a `hooks` alias.
-- **Svelte** defaults its aliases to `$lib`, a SvelteKit convention that doesn't exist in Laravel. Point every alias at `@/...` instead.
-- **Vue** has a `composables` alias where the others use `hooks`.
+- React adds `"tsx": true` and `"rsc": false`, since Inertia pages aren't React Server Components. It also has a `hooks` alias.
+- Vue has a `composables` alias where the others use `hooks`.
+- Svelte is the one to watch. Its aliases default to `$lib`, a SvelteKit convention that doesn't exist in Laravel, so point every alias at `@/...` instead.
 
 ## Adding components
 
-With `components.json` in place, add components by name:
+Once `components.json` is in place, you add components by name:
 
 ```bash
 npx shadcn@latest add dialog        # React
@@ -107,10 +102,9 @@ npx shadcn-vue@latest add dialog    # Vue
 npx shadcn-svelte@latest add dialog # Svelte
 ```
 
-The CLI writes the source into `resources/js/components/ui` and installs any npm packages the component needs, such as the primitive library. Two habits save trouble:
+The CLI writes the source into `resources/js/components/ui` and installs any npm packages the component needs, such as the primitive library.
 
-- **Commit before you run it.** If you have already customised a component, the diff shows exactly what the CLI wants to change.
-- **Add only what you use.** Every component is code you maintain, so there's no reason to pull in the whole catalogue.
+Two habits will save you trouble here. **Commit before you run the CLI.** If you've already customised a component, the diff then shows exactly what the CLI wants to change. And only add what you use. Every component is code you maintain, so there's no reason to pull in the whole catalogue.
 
 ## Theming with CSS variables and Tailwind v4
 
@@ -130,13 +124,13 @@ shadcn's theme is a set of CSS variables in `app.css`. Tailwind v4 maps them to 
 .dark { --primary: hsl(0 0% 98%); --border: hsl(0 0% 14.9%); }
 ```
 
-Dark mode is a `.dark` class on `<html>`. Toggle it with a small inline script in your Blade root view that reads the saved preference or the system setting, so the page doesn't flash light before the first paint. To rebrand a SaaS, change the variables in `:root` and `.dark`. The components stay the same.
+Dark mode is a `.dark` class on `<html>`. Toggle it with a small inline script in your Blade root view that reads the saved preference or the system setting. Doing it there means the page doesn't flash light before the first paint. Rebranding a SaaS is then just a matter of changing the variables in `:root` and `.dark`, while the components stay the same.
 
-If you publish Laravel's pagination views or use other Blade templates, add `@source` lines for them so Tailwind picks up their classes too.
+One more thing: if you publish Laravel's pagination views or use other Blade templates, add `@source` lines for them so Tailwind picks up their classes too.
 
 ## Wiring shadcn inputs to Laravel validation
 
-Out of the box, shadcn gives you an `Input` and a `Label`, but no idea of Laravel's error bag. Every form ends up repeating the same label, input and error markup. A thin wrapper per field type fixes that. Here is a React version:
+shadcn gives you an `Input` and a `Label`, but neither knows anything about Laravel's error bag. Without help, every form repeats the same label, input and error markup. A thin wrapper per field type fixes that. Here's a React version:
 
 ```tsx
 export function TextField({ name, label, error, ...props }: TextFieldProps) {
@@ -152,22 +146,21 @@ export function TextField({ name, label, error, ...props }: TextFieldProps) {
 }
 ```
 
-Inside an Inertia form you then pass `error={errors.email}` and nothing else. The `aria-invalid` attribute matters here, because shadcn's input styles already include `aria-invalid:border-destructive`, so the field turns red without extra classes. How Inertia collects those errors is covered in [the Inertia Form component guide](/blog/inertia-form-component.html).
+Inside an Inertia form, you then pass `error={errors.email}` and nothing else. Don't skip the `aria-invalid` attribute. shadcn's input styles already include `aria-invalid:border-destructive`, so that attribute is what turns the field red, with no extra classes. For how Inertia collects those errors in the first place, see [the Inertia Form component guide](/blog/inertia-form-component.html).
 
 ## Customising without losing upstream fixes
 
-Because you own the files, it's easy to drift far from upstream. A few rules keep updates manageable:
+Because you own the files, it's easy to drift a long way from upstream. That makes later fixes hard to pull in, so a few rules help.
 
-- **Extend variants, don't fork components.** Adding an `icon-sm` size to the button's variant map is a one-line change that stays easy to merge.
-- **Put app behaviour in wrappers.** Loading spinners, error messages and translations belong in your own components, not in `components/ui`.
-- **Keep the UI folder boring.** If a file in `components/ui` needs business logic, it probably belongs one level up.
-- **Mount global pieces once.** The toaster and tooltip provider go in your app layout or root wrapper, not in every page.
+**Extend variants rather than forking components.** Adding an `icon-sm` size to the button's variant map is a one-line change that stays easy to merge. Along the same lines, put app behaviour in wrappers. Loading spinners, error messages and translations belong in your own components, not in `components/ui`. I like to keep that UI folder boring: if a file there needs business logic, it probably belongs one level up.
+
+Finally, mount global pieces once. The toaster and tooltip provider go in your app layout or root wrapper, not in every page.
 
 ## Frequently asked questions
 
 ### Can I use shadcn with Blade or Livewire?
 
-Not directly. shadcn components are React, Vue or Svelte source files, so they need one of those frameworks. With Inertia you get that without leaving Laravel's routing and controllers.
+Not directly. shadcn components are React, Vue or Svelte source files, so they need one of those frameworks. Inertia gives you that without leaving Laravel's routing and controllers.
 
 ### Is shadcn free for commercial Laravel projects?
 
@@ -175,14 +168,14 @@ Yes. shadcn/ui, shadcn-vue and shadcn-svelte are open source under the MIT licen
 
 ### Do I need Tailwind CSS to use shadcn?
 
-Yes. The styling is Tailwind utility classes plus CSS variables. Current versions of all three ports are built for Tailwind CSS v4, with the theme defined in CSS.
+Yes. The styling is Tailwind utility classes plus CSS variables, and current versions of all three ports are built for Tailwind CSS v4, with the theme defined in CSS.
 
 ### Why do my shadcn imports fail after adding a component?
 
-Usually the `@/` alias is missing in `tsconfig.json`, or the aliases in `components.json` don't match your folders. Check that `ui` points at `@/components/ui` and `utils` at the file that exports `cn()`.
+Usually the `@/` alias is missing from `tsconfig.json`, or the aliases in `components.json` don't match your folders. Check that `ui` points at `@/components/ui` and `utils` at the file that exports `cn()`.
 
 ## How SaaS Laravel uses shadcn
 
-Each SaaS Laravel kit ships a configured `components.json` and a `resources/js/components/ui` folder: shadcn/ui on Radix in the React kit, shadcn-vue on Reka UI in the Vue kit, and shadcn-svelte on Bits UI in the Svelte kit. That includes dialog, select, sidebar, dropdown menu, input OTP, sonner and more. On top of them sit the kit's own `Common*` form components, which add the label, error message and accessibility attributes for Inertia forms. See the component docs for [Vue](/docs/vue/components.html), [React](/docs/react/components.html) and [Svelte](/docs/svelte/components.html).
+If you'd rather skip the setup, each SaaS Laravel kit already ships a configured `components.json` and a `resources/js/components/ui` folder: shadcn/ui on Radix in the React kit, shadcn-vue on Reka UI in the Vue kit, and shadcn-svelte on Bits UI in the Svelte kit. That includes dialog, select, sidebar, dropdown menu, input OTP, sonner and more. On top of them sit the kit's own `Common*` form components, which add the label, error message and accessibility attributes for Inertia forms. The component docs for [Vue](/docs/vue/components.html), [React](/docs/react/components.html) and [Svelte](/docs/svelte/components.html) list them all.
 
 <BlogPostCta title="Get shadcn already set up for Laravel" text="SaaS Laravel kits ship shadcn components for Vue, React or Svelte with ready form wrappers, plus multi-tenancy, authentication and roles on Laravel." />

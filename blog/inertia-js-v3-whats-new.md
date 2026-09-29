@@ -31,9 +31,9 @@ head:
 
 <BlogPostMeta />
 
-**Inertia v3** is the biggest release of the Laravel-friendly SPA adapter since v2. It drops Axios, adds a Vite plugin that removes most of the setup code, and brings new tools such as `useHttp`, optimistic updates, instant visits and layout props. This post covers what is new, which breaking changes to look for in your code, and the steps to upgrade a Laravel app from v2.
+If you've got a Laravel app on Inertia v2, you're probably wondering how much work Inertia v3 will be. It's the biggest release of the adapter since v2: Axios is gone, a new Vite plugin removes most of the setup code, and there are new tools like `useHttp`, optimistic updates, instant visits and layout props. Below I'll go through what's new, which breaking changes to search your code for, and the upgrade steps in order.
 
-Everything below was checked against `inertiajs/inertia-laravel` 3.3 and the `@inertiajs/*` 3.7 packages.
+Everything here was checked against `inertiajs/inertia-laravel` 3.3 and the `@inertiajs/*` 3.7 packages.
 
 ## Inertia v3 at a glance
 
@@ -47,17 +47,17 @@ Everything below was checked against `inertiajs/inertia-laravel` 3.3 and the `@i
 | Lazy props | `Inertia::lazy()` (deprecated) | Removed, use `Inertia::optional()` |
 | Packages | CommonJS and ESM | ESM only, ES2022 target |
 
-## Requirements
+## Requirements for Inertia v3
 
-Inertia v3 needs **PHP 8.2+**, **Laravel 11+** (the adapter supports Laravel 11, 12 and 13) and **Node 20+**. The React adapter requires **React 19**, and the Svelte adapter requires **Svelte 5** with runes. The Vue adapter works with any Vue 3 release.
+You'll need **PHP 8.2+, Laravel 11+ and Node 20+**. The adapter supports Laravel 11, 12 and 13. On the frontend, the React adapter requires React 19 and the Svelte adapter requires Svelte 5 with runes, while the Vue adapter works with any Vue 3 release.
 
-If you are still on React 18 or Svelte 4, upgrade the framework first, then Inertia.
+Still on React 18 or Svelte 4? Upgrade the framework first, then Inertia. Doing both at once makes it much harder to tell which change broke what.
 
 ## What's new in Inertia v3
 
 ### The @inertiajs/vite plugin
 
-The new Vite plugin does two jobs. It turns page resolution into a shorthand, so you no longer write `import.meta.glob` code yourself, and it runs SSR inside the Vite dev server during development. You no longer need `vite build --ssr` or `php artisan inertia:start-ssr` while you work.
+The new Vite plugin does two jobs. It turns page resolution into a shorthand, so you stop writing `import.meta.glob` code yourself. It also runs SSR inside the Vite dev server during development, which means no more `vite build --ssr` or `php artisan inertia:start-ssr` while you work.
 
 ```ts
 // vite.config.ts
@@ -73,17 +73,17 @@ export default defineConfig({
 });
 ```
 
-With the plugin in place, `createInertiaApp()` can go without a `resolve` callback, or take a short `pages: './pages'` option. The plugin is optional: a hand-written `resolve` function still works.
+With the plugin in place, `createInertiaApp()` can drop the `resolve` callback entirely, or take a short `pages: './pages'` option instead. You don't have to adopt it, though. A hand-written `resolve` function still works.
 
 ### Default layouts and layout props
 
-`createInertiaApp()` now accepts a `layout` option, so you can pick a layout for every page in one place, based on the page name. Pages can also pass data up to their layout, such as a title or breadcrumbs, with static props or `setLayoutProps()`.
+`createInertiaApp()` now accepts a `layout` option, so you can choose a layout for every page in one place based on the page name. Pages can also pass data up to their layout, like a title or breadcrumbs, with static props or `setLayoutProps()`.
 
-Some early upgrade notes call this a `useLayoutProps` hook. In the installed 3.7 adapters the exported function is `setLayoutProps()`, with `resetLayoutProps()` next to it. Both are covered step by step in [persistent layouts in Inertia](/blog/inertia-persistent-layouts.html).
+If you've read early upgrade notes that mention a `useLayoutProps` hook, that's where the confusion comes from. In the installed 3.7 adapters the exported function is `setLayoutProps()`, with `resetLayoutProps()` beside it. I go through both step by step in [persistent layouts in Inertia](/blog/inertia-persistent-layouts.html).
 
 ### useHttp for plain JSON requests
 
-Not every request should be a page visit. Loading a QR code, running a search or checking a slug only needs JSON. `useHttp` gives those requests the same state you know from `useForm`: `processing`, `errors`, progress and cancellation, without Axios.
+Not every request should be a page visit. Loading a QR code, running a search or checking a slug only needs JSON back. `useHttp` gives those requests the same state you already know from `useForm` (`processing`, `errors`, progress and cancellation), and it does it without Axios.
 
 ```vue
 <script setup lang="ts">
@@ -101,7 +101,7 @@ function search() {
 
 ### Optimistic updates
 
-`router.optimistic()` changes the page props immediately, before the server answers. If the request fails, Inertia rolls the props back for you. It also works with `useForm`, `useHttp` and the `optimistic` prop of the `Form` component.
+`router.optimistic()` changes the page props straight away, before the server answers. If the request fails, Inertia rolls the props back for you. It works with `useForm`, `useHttp` and the `optimistic` prop of the `Form` component too.
 
 ```ts
 router.optimistic((props) => ({
@@ -111,7 +111,7 @@ router.optimistic((props) => ({
 
 ### Instant visits
 
-Give a `Link` the name of the target component and Inertia swaps to that page straight away, rendering it with the shared props while the request runs in the background. Page-specific props arrive when the server responds.
+Give a `Link` the name of the target component, and Inertia switches to that page immediately. It renders with the shared props while the request runs in the background, and the page-specific props fill in when the server responds.
 
 ```vue
 <Link href="/dashboard" component="Dashboard">Dashboard</Link>
@@ -119,7 +119,7 @@ Give a `Link` the name of the target component and Inertia swaps to that page st
 
 ### Custom error pages from exceptions
 
-`Inertia::handleExceptionsUsing()` lets you render an Inertia page for any exception response. `withSharedData()` adds your shared props even when the error happened outside the Inertia middleware, which is the case for most 404s. Returning nothing falls back to Laravel's default rendering.
+`Inertia::handleExceptionsUsing()` lets you render an Inertia page for any exception response. Calling `withSharedData()` adds your shared props even when the error happened outside the Inertia middleware, which is the case for most 404s. If your callback returns nothing, Laravel's default rendering takes over.
 
 ```php
 // app/Providers/AppServiceProvider.php
@@ -134,17 +134,19 @@ Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
 
 ### Smaller additions
 
-- **Enums in `Inertia::render()`.** A backed enum's value (or a unit enum's name) can be the component name.
-- **`preserveErrors`** keeps validation errors during partial reloads.
-- **Form component generics** give typed `errors` and slot props in TypeScript.
-- **Blade components.** `<x-inertia::head>` and `<x-inertia::app>` can replace the `@inertiaHead` and `@inertia` directives. The head slot only renders when SSR is off, which avoids duplicate `<title>` tags. The directives still work.
-- **Nested prop types.** `Inertia::optional()`, `Inertia::defer()` and `Inertia::merge()` resolve inside nested arrays and closures, and `only`, `except`, `Deferred` and `WhenVisible` accept dot-notation paths.
-- **HTTP interceptors.** `http.onRequest()`, `http.onResponse()` and `http.onError()` replace Axios interceptors.
-- **Automatic middleware priority.** The Inertia middleware is registered at the right priority, so you can drop any manual priority setup.
+A few smaller changes are easy to miss in the release notes:
 
-## Breaking changes to check before you upgrade
+- `Inertia::render()` accepts enums. A backed enum's value (or a unit enum's name) can be the component name.
+- `preserveErrors` keeps validation errors during partial reloads.
+- Form component generics give you typed `errors` and slot props in TypeScript.
+- Nested prop types: `Inertia::optional()`, `Inertia::defer()` and `Inertia::merge()` resolve inside nested arrays and closures, and `only`, `except`, `Deferred` and `WhenVisible` accept dot-notation paths.
+- `http.onRequest()`, `http.onResponse()` and `http.onError()` replace Axios interceptors.
 
-Most apps need only a few edits. Search your code for each item in this table:
+There are also new Blade components. `<x-inertia::head>` and `<x-inertia::app>` can replace the `@inertiaHead` and `@inertia` directives, and the head slot only renders when SSR is off, which avoids duplicate `<title>` tags. The directives still work. Finally, the Inertia middleware now registers itself at the right priority, so you can delete any manual priority setup.
+
+## Inertia v3 breaking changes to check before you upgrade
+
+Most apps only need a few edits. I'd search your code for each item in this table:
 
 | Change in Inertia v3 | What to do |
 | --- | --- |
@@ -159,7 +161,7 @@ Most apps need only a few edits. Search your code for each item in this table:
 | Old testing traits `Has`, `Matching`, `Debugging` | Use `AssertableInertia` (most apps already do). |
 | `require()` imports | Switch to `import`. The packages are ESM only. |
 
-A few behaviour changes are worth a quick test too. `useForm` now resets `processing` and `progress` inside `onFinish`. React's `Deferred` no longer shows its fallback again during a partial reload, which matches Vue and Svelte. The initial page data is always sent in a `<script type="application/json">` element, and `clearHistory` and `encryptHistory` are left out of the page object unless they are `true`.
+Some behaviour changes won't show up in a search, so give them a quick test. `useForm` now resets `processing` and `progress` inside `onFinish`. React's `Deferred` no longer shows its fallback again during a partial reload, which brings it in line with Vue and Svelte. The initial page data is always sent in a `<script type="application/json">` element, and `clearHistory` and `encryptHistory` are left out of the page object unless they're `true`.
 
 ## Upgrade checklist
 
@@ -171,32 +173,34 @@ A few behaviour changes are worth a quick test too. `useForm` now resets `proces
 6. Work through the breaking-changes table above.
 7. Run your test suite and click through forms, file uploads and error pages.
 
+Take care with step 5. **Republishing with `--force` overwrites your config**, so keep a copy of your old `config/inertia.php` to re-apply your changes from.
+
 ## What carries over from v2
 
-Everything you used in v2 still works: deferred props, merging props, polling, prefetching, once props, infinite scroll and history encryption. Flash data (`Inertia::flash()`), which fits toasts much better than shared session props, is also available. See [flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html).
+Everything you used in v2 still works: deferred props, merging props, polling, prefetching, once props, infinite scroll and history encryption. You also get flash data (`Inertia::flash()`), which suits toasts far better than shared session props. I cover that in [flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html).
 
-For forms, the `Form` component remains the simplest option and gains the `optimistic` prop and typed slot props in v3. The [Inertia Form component guide](/blog/inertia-form-component.html) walks through it.
+For forms, the `Form` component is still the simplest option, and in v3 it gains the `optimistic` prop and typed slot props. The [Inertia Form component guide](/blog/inertia-form-component.html) walks through it.
 
 ## Frequently asked questions
 
 ### Do I still need Axios with Inertia v3?
 
-No. Inertia v3 ships its own HTTP client with request, response and error interceptors. Install Axios only if your own code imports it. The core package lists it as an optional peer dependency.
+No. Inertia v3 ships its own HTTP client with request, response and error interceptors. You'd only install Axios if your own code imports it; the core package lists it as an optional peer dependency.
 
 ### Is the @inertiajs/vite plugin required?
 
-No, it is optional. Without it you keep a `resolve` callback in `createInertiaApp()` and set up SSR as before. With it, page resolution is one line and SSR runs in the Vite dev server during development.
+No, it's optional. Without it, you keep a `resolve` callback in `createInertiaApp()` and set up SSR the way you did before. With it, page resolution becomes one line and SSR runs in the Vite dev server during development. For a new project I'd use it.
 
 ### Does Inertia v3 work with Laravel 10?
 
-No. The Laravel adapter requires Laravel 11 or newer and PHP 8.2 or newer. Upgrade Laravel first, then Inertia.
+No. The Laravel adapter needs Laravel 11 or newer and PHP 8.2 or newer, so upgrade Laravel first and Inertia second.
 
 ### Can I keep the @inertia and @inertiaHead Blade directives?
 
-Yes. The new `<x-inertia::app>` and `<x-inertia::head>` components are an alternative, not a replacement. Switching is worth it if you use SSR and see duplicate `<title>` tags.
+Yes. The new `<x-inertia::app>` and `<x-inertia::head>` components are an alternative, not a replacement. They're worth switching to if you use SSR and see duplicate `<title>` tags.
 
 ## Inertia v3 in SaaS Laravel
 
-The [SaaS Laravel starter kits](/) are built on Inertia v3 (`inertiajs/inertia-laravel` ^3.0 and `@inertiajs/*` ^3.0) with the `@inertiajs/vite` plugin, so `app.ts` has no `resolve` callback. Default layouts are picked by page name in `createInertiaApp()`. There is no Axios: forms use the `Form` component, two-factor QR and recovery codes load through `useHttp`, and controllers send toasts with `Inertia::flash()`. The root view uses `<x-inertia::head>` and `<x-inertia::app>`. See [Inertia v3 with Vue](/docs/vue/inertia.html), or compare the three frontends in [Vue, React or Svelte for your Laravel SaaS](/blog/vue-react-or-svelte-laravel-saas.html).
+If you'd rather start on v3 than upgrade to it, the [SaaS Laravel starter kits](/) are already built on Inertia v3 (`inertiajs/inertia-laravel` ^3.0 and `@inertiajs/*` ^3.0) with the `@inertiajs/vite` plugin, so `app.ts` has no `resolve` callback. Default layouts are chosen by page name in `createInertiaApp()`. There's no Axios: forms use the `Form` component, two-factor QR and recovery codes load through `useHttp`, and controllers send toasts with `Inertia::flash()`. The root view uses `<x-inertia::head>` and `<x-inertia::app>`. You can read more in [Inertia v3 with Vue](/docs/vue/inertia.html), or compare the three frontends in [Vue, React or Svelte for your Laravel SaaS](/blog/vue-react-or-svelte-laravel-saas.html).
 
 <BlogPostCta title="Start on Inertia v3 from day one" text="SaaS Laravel kits run on Inertia v3 with the Vite plugin, the Form component and flash toasts, in Vue, React or Svelte on the same Laravel backend." />

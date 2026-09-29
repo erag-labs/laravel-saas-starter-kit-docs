@@ -31,13 +31,13 @@ head:
 
 <BlogPostMeta />
 
-A SaaS product changes every week, and every change can break sign-in, permissions or the workflows customers rely on. **Laravel Pest testing** gives you a fast, readable safety net for exactly those paths.
+A SaaS product changes every week, and any of those changes can quietly break sign-in, permissions or a workflow your customers depend on. **Laravel Pest testing** is how I catch that before they do. Pest is fast, the tests read almost like plain English, and it's pleasant enough that you'll actually keep writing them.
 
-This guide covers what is worth testing in a Laravel SaaS, how to set Pest up, and how to test HTTP flows, permissions, Inertia pages, validation and side effects. It also covers architecture tests and how to keep the suite fast as it grows.
+Below I go through what's worth testing in a Laravel SaaS, how I set Pest up, and how to test HTTP flows, permissions, Inertia pages, validation and side effects. Then architecture tests, and how to keep the suite fast once it grows.
 
 ## What to test in a Laravel SaaS
 
-You don't need 100% coverage. You need tests where a bug would cost you customers or support time:
+Forget 100% coverage. Write tests where a bug would cost you customers or support time:
 
 | Area | Example test | Type |
 | --- | --- | --- |
@@ -49,11 +49,11 @@ You don't need 100% coverage. You need tests where a bug would cost you customer
 | Domain logic | A service calculates the right result | Unit or feature |
 | Conventions | No `dd()` left in the code | Architecture |
 
-Feature tests, which send a request through the whole app, give the most confidence per line of code. Unit tests are best for pure logic that doesn't need the framework.
+I lean heavily on feature tests. They send a request through the whole app, so you get the most confidence per line of test code. I save unit tests for pure logic that doesn't need the framework at all.
 
-## Setting up Pest for Laravel testing
+## Setting up Laravel Pest testing
 
-Pest is a testing framework built on PHPUnit with a shorter, function-based syntax. Install it with the Laravel plugin:
+Pest is a testing framework built on PHPUnit, with a shorter, function-based syntax. Install it together with the Laravel plugin:
 
 ```bash
 composer require pestphp/pest pestphp/pest-plugin-laravel --dev --with-all-dependencies
@@ -68,7 +68,7 @@ pest()->extend(Tests\TestCase::class)
     ->in('Feature');
 ```
 
-Then point the test environment at fast, isolated drivers in `phpunit.xml`:
+Next, point the test environment at fast, isolated drivers in `phpunit.xml`:
 
 | Variable | Test value | Why |
 | --- | --- | --- |
@@ -78,11 +78,11 @@ Then point the test environment at fast, isolated drivers in `phpunit.xml`:
 | `CACHE_STORE`, `SESSION_DRIVER` | `array` | No state between tests |
 | `BCRYPT_ROUNDS` | `4` | Password hashing stays fast |
 
-In-memory SQLite is quick, but it isn't MySQL or PostgreSQL. If you rely on database-specific features such as JSON columns or full-text search, run CI against the same engine as production.
+In-memory SQLite is quick, but it isn't MySQL or PostgreSQL. If you use database-specific features like JSON columns or full-text search, run CI against the same engine you use in production.
 
 ## Writing feature tests with Pest
 
-A feature test reads like a sentence. Create data with factories, act as a user and assert on the response:
+A good feature test reads like a sentence. Create data with factories, act as a user, assert on the response:
 
 ```php
 use App\Models\User;
@@ -98,11 +98,11 @@ test('verified users can open the dashboard', function () {
 });
 ```
 
-Use route names instead of URLs, so tests survive URL changes. Prefer specific assertions such as `assertOk()`, `assertForbidden()` and `assertNotFound()` over `assertStatus(...)`. They make failures easier to read.
+Use route names rather than URLs, so the tests survive when a URL changes. And prefer specific assertions like `assertOk()`, `assertForbidden()` and `assertNotFound()` over `assertStatus(...)`. When one fails, you'll know what went wrong without reading a status code table.
 
 ## Testing permissions and authorization
 
-Authorization bugs are the ones that leak data, so test both sides of every important rule:
+Authorization bugs are the ones that leak data. For every important rule, I test both sides:
 
 ```php
 test('members without permission cannot delete projects', function () {
@@ -116,11 +116,11 @@ test('members without permission cannot delete projects', function () {
 });
 ```
 
-Then add the positive case, where the user has the permission and the project is gone. If you use Spatie's package, `$user->givePermissionTo(...)` sets that up in one line. The [Spatie roles and permissions guide](/blog/laravel-roles-permissions-spatie.html) covers the package itself.
+Then write the positive case, where the user has the permission and the project really is gone. If you're on Spatie's package, `$user->givePermissionTo(...)` sets that up in one line. The package itself is covered in the [Spatie roles and permissions guide](/blog/laravel-roles-permissions-spatie.html).
 
 ## Testing Inertia pages
 
-With Inertia, a controller returns a page component and props instead of HTML. `assertInertia()` lets you check both:
+With Inertia, a controller returns a page component and props rather than HTML. `assertInertia()` lets you check both:
 
 ```php
 use Inertia\Testing\AssertableInertia as Assert;
@@ -137,11 +137,11 @@ test('the projects page lists the projects', function () {
 });
 ```
 
-By default, `component()` also checks that the page file exists (`inertia.testing.ensure_pages_exist`), so a renamed Vue, React or Svelte page fails the test instead of failing in the browser. It's also a good place to assert that sensitive fields, such as tokens or 2FA secrets, are **missing** from the props.
+By default, `component()` also checks that the page file exists (`inertia.testing.ensure_pages_exist`). So if someone renames a Vue, React or Svelte page, the test fails instead of the browser. This is also where I'd assert that sensitive fields, such as tokens or 2FA secrets, are **missing** from the props. It's an easy leak to miss by eye.
 
 ## Validation with datasets
 
-Datasets run the same test with different inputs. They are perfect for validation rules:
+Datasets run the same test with different inputs, which makes them a natural fit for validation rules:
 
 ```php
 test('project names are validated', function (mixed $name) {
@@ -155,11 +155,11 @@ test('project names are validated', function (mixed $name) {
 ]);
 ```
 
-Each named case shows up separately in the output, so you can see at a glance which rule broke.
+Each named case shows up on its own line in the output, so you can see straight away which rule broke.
 
 ## Faking emails, notifications and queues
 
-A SaaS sends invitations, receipts and alerts. You want to assert that they are sent without sending anything real. Laravel's fakes swap the real implementation for an in-memory recorder:
+A SaaS sends invitations, receipts and alerts all the time. You want to prove they're sent without actually sending anything. Laravel's fakes swap the real implementation for an in-memory recorder:
 
 ```php
 use Illuminate\Support\Facades\Notification;
@@ -178,11 +178,11 @@ test('inviting a user sends one invitation', function () {
 });
 ```
 
-`Mail::fake()`, `Queue::fake()`, `Event::fake()` and `Http::fake()` work the same way. `Http::fake()` is especially useful for code that calls payment providers or other external APIs.
+`Mail::fake()`, `Queue::fake()`, `Event::fake()` and `Http::fake()` work the same way. `Http::fake()` earns its keep in code that talks to payment providers or other external APIs.
 
 ## Architecture tests
 
-Architecture tests check your code's structure instead of its behaviour. You describe a rule once, and Pest checks every class against it:
+Architecture tests check your code's structure rather than its behaviour. You describe a rule once and Pest checks every class against it:
 
 ```php
 arch('no debugging calls')
@@ -194,44 +194,44 @@ arch('models extend Eloquent')
     ->toExtend(Illuminate\Database\Eloquent\Model::class);
 ```
 
-Pest also ships presets such as `arch()->preset()->php()` and `arch()->preset()->laravel()`. They are opinionated: the Laravel preset, for example, bans `env()` outside config and only allows resource-style public methods on controllers, and it only looks at the `App` namespace. Try a preset, keep what fits, and write your own rules for the rest. In a [modular Laravel architecture](/blog/modular-laravel-architecture.html), rules like "this module must not use that one" keep boundaries from eroding quietly.
+Pest also ships presets such as `arch()->preset()->php()` and `arch()->preset()->laravel()`. They're opinionated. The Laravel preset, for example, bans `env()` outside config, only allows resource-style public methods on controllers, and only looks at the `App` namespace. My advice: try a preset, keep the rules that fit, and write your own for the rest. In a [modular Laravel architecture](/blog/modular-laravel-architecture.html), rules like "this module must not use that one" stop boundaries from wearing away without anyone noticing.
 
 ## Keeping the suite fast
 
-A slow suite is a suite nobody runs. Some habits that keep it quick:
+A slow suite is a suite nobody runs. These are the habits I'd reach for.
 
-- **Run in parallel.** `vendor/bin/pest --parallel` splits tests across processes.
-- **Run what you changed.** `--dirty` runs only tests with uncommitted changes. Pest 5's `--tia` goes further: it re-runs only the tests affected by your changes and replays the rest from cache.
-- **Shard in CI.** Pest 5 can balance shards by run time: record timings with `--update-shards`, then run `--shard=1/4` on each CI machine.
-- **Migrate lazily.** `LazilyRefreshDatabase` only migrates when a test actually touches the database.
-- **Keep factories lean.** Create only the related models a test needs. Heavy factory states are a common hidden cost.
+Run in parallel with `vendor/bin/pest --parallel`, which splits tests across processes. While you're working, run only what you changed: `--dirty` picks tests with uncommitted changes, and Pest 5's `--tia` goes further by re-running only the tests affected by your changes and replaying the rest from cache.
 
-Pair the suite with static analysis and style checks in CI, as described in [Larastan and Pint for Laravel code quality](/blog/laravel-larastan-pint.html).
+In CI, shard the suite. Pest 5 can balance shards by run time: record timings with `--update-shards`, then run `--shard=1/4` on each CI machine.
+
+Two smaller wins round it out. `LazilyRefreshDatabase` only migrates when a test actually touches the database. And keep factories lean by creating only the related models a test needs, because heavy factory states are a common hidden cost.
+
+Pair all this with static analysis and style checks in CI, as described in [Larastan and Pint for Laravel code quality](/blog/laravel-larastan-pint.html).
 
 ### Multi-tenant apps
 
-Tenant-aware code needs extra care: creating tenant databases, switching tenant context and cleaning up afterwards. That topic has its own guide: [testing multi-tenant Laravel apps with Pest](/blog/test-multi-tenant-laravel-pest.html).
+Tenant-aware code needs extra care: creating tenant databases, switching tenant context and cleaning up afterwards. It's a big enough topic for its own post, [testing multi-tenant Laravel apps with Pest](/blog/test-multi-tenant-laravel-pest.html).
 
 ## Frequently asked questions
 
 ### Is Pest better than PHPUnit for Laravel?
 
-Pest runs on top of PHPUnit, so both are equally capable. Pest's syntax is shorter and adds datasets, architecture tests and a nicer CLI. Laravel supports both, and Pest can run existing PHPUnit test classes, so you can switch gradually.
+Pest runs on top of PHPUnit, so they're equally capable. Pest's syntax is shorter, and it adds datasets, architecture tests and a nicer CLI. Laravel supports both, and Pest can run your existing PHPUnit test classes, so you can switch over gradually. I'd pick Pest for a new project.
 
 ### Should I use SQLite or MySQL for tests?
 
-In-memory SQLite is the fastest option and works for most apps. If you use database-specific features, or have had bugs that only appeared on MySQL or PostgreSQL, run at least your CI suite on the production engine.
+In-memory SQLite is the fastest option and works for most apps. If you use database-specific features, or you've had bugs that only showed up on MySQL or PostgreSQL, run at least your CI suite on the production engine.
 
 ### How many tests does a SaaS need?
 
-Start with the paths that would hurt most if they broke: sign-in, permissions, tenant or account isolation, and your main workflow. Add a test for every bug you fix. Coverage numbers matter less than covering the flows customers depend on.
+Start with the paths that would hurt most if they broke: sign-in, permissions, tenant or account isolation, and your main workflow. After that, add a test for every bug you fix. Coverage numbers matter much less than covering the flows customers rely on.
 
 ### How do I test code that calls an external API?
 
-Wrap the API in a service class and call `Http::fake()` in the test to return a fixed response. Then assert both what your code did with the response and which requests it sent, without ever hitting the real service.
+Wrap the API in a service class and call `Http::fake()` in the test so it returns a fixed response. Then assert what your code did with that response and which requests it sent. The real service never gets hit.
 
-## How SaaS Laravel handles testing
+## Pest in the SaaS Laravel kits
 
-The [SaaS Laravel kits](/) ship with Pest 5 and the Laravel plugin. They include feature tests for login, registration, password reset and confirmation, email verification, the two-factor challenge, profile and security settings, and the dashboard. A `skipUnlessFortifyHas()` helper skips auth tests cleanly when you turn off a Fortify feature. Tests run on in-memory SQLite, and the React and Svelte kits also include tenancy tests for tenant creation and tenant sign-in. `composer test` runs Pint, frontend linting, Larastan and Pest, and a GitHub Actions workflow runs the same checks. Read the [testing documentation](/docs/core/testing.html) for commands and examples.
+If you'd rather not set all of this up yourself, the [SaaS Laravel kits](/) already ship with Pest 5 and the Laravel plugin. They include feature tests for login, registration, password reset and confirmation, email verification, the two-factor challenge, profile and security settings, and the dashboard. A `skipUnlessFortifyHas()` helper skips auth tests cleanly when you turn a Fortify feature off. Tests run on in-memory SQLite, and the React and Svelte kits also include tenancy tests for tenant creation and tenant sign-in. `composer test` runs Pint, frontend linting, Larastan and Pest, and a GitHub Actions workflow runs the same checks. The [testing documentation](/docs/core/testing.html) has the commands and examples.
 
 <BlogPostCta title="A tested SaaS foundation" text="SaaS Laravel kits come with Pest tests for authentication and settings, Larastan, Pint and a CI workflow, plus multi-tenancy and roles in Vue, React or Svelte." />

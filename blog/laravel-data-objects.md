@@ -31,21 +31,21 @@ head:
 
 <BlogPostMeta />
 
-Arrays are the default way to move data around a Laravel app, and they don't tell you much. Which keys does `$data` have? Is `phone` optional? Is `created_at` a string or a Carbon instance? **Spatie laravel-data** replaces those loose arrays with small typed classes that describe the shape of your data once.
+Arrays are how most Laravel apps move data around, and they don't tell you much. Which keys does `$data` have? Is `phone` optional? Is `created_at` a string or a Carbon instance? Spatie laravel-data swaps those loose arrays for small typed classes that describe the shape of your data in one place.
 
-This guide covers what the package does, how to create Data objects from requests, arrays and models, how validation works, how to handle snake_case input and relations, how to send Data objects to Inertia, and when a plain array is still the better choice.
+We'll cover what the package does, how to create Data objects from requests, arrays and models, how validation works, how to deal with snake_case input and relations, how to hand Data objects to Inertia, and when a plain array is still the better call.
 
 ## What spatie/laravel-data does
 
-A Data object is a DTO (data transfer object): a class with typed, public properties and no business logic. With `spatie/laravel-data`, one class can play three roles:
+A Data object is a DTO (data transfer object): a class with typed public properties and no business logic. With `spatie/laravel-data`, a single class can play three roles:
 
 | Role | Example |
 | --- | --- |
-| **Input** | Validate a request and hand a typed object to your service |
-| **Output** | Turn an Eloquent model into exactly the fields a page needs |
-| **Contract** | Describe the same shape for your TypeScript frontend |
+| Input | Validate a request and hand a typed object to your service |
+| Output | Turn an Eloquent model into exactly the fields a page needs |
+| Contract | Describe the same shape for your TypeScript frontend |
 
-The benefit is that your editor, static analysis and the next developer all know what `$data->email` is. Typos become errors you see before production, not `null` values you discover after.
+What you get out of it is shared knowledge. Your editor, static analysis and the next developer all know what `$data->email` is, so typos turn into errors you see before production instead of `null` values you find afterwards.
 
 Install it with Composer:
 
@@ -54,7 +54,7 @@ composer require spatie/laravel-data
 php artisan vendor:publish --tag=data-config   # optional: publishes config/data.php
 ```
 
-The package also adds `php artisan make:data` to generate a new class.
+You also get `php artisan make:data` for generating new classes.
 
 ## Your first Data object
 
@@ -74,7 +74,7 @@ class CustomerData extends Data
 }
 ```
 
-You create instances with the static `from()` method, which accepts many kinds of input:
+To create one, call the static `from()` method. It accepts a lot of different inputs:
 
 ```php
 $customer = CustomerData::from(['name' => 'Ada', 'email' => 'ada@example.com']);
@@ -82,11 +82,11 @@ $customer = CustomerData::from($request);   // an HTTP request
 $customer = CustomerData::from($model);     // an Eloquent model
 ```
 
-From here on, `$customer->phone` is a typed property instead of an array key that might be missing.
+After that, `$customer->phone` is a typed property, not an array key that may or may not exist.
 
 ## Validating requests with Data objects
 
-The most useful feature is automatic validation. Type-hint a Data class in a controller method, and Laravel resolves it from the current request and validates it before your code runs:
+Automatic validation is the feature we'd single out. Type-hint a Data class in a controller method and Laravel resolves it from the current request, validating it before your code runs:
 
 ```php
 public function store(CustomerData $data, CustomerService $customers): RedirectResponse
@@ -97,22 +97,22 @@ public function store(CustomerData $data, CustomerService $customers): RedirectR
 }
 ```
 
-If validation fails, you get the usual redirect back with errors (or a 422 JSON response), just like with a Form Request.
+When validation fails you get the usual redirect back with errors (or a 422 JSON response), same as with a Form Request.
 
 ### Inferred rules
 
-The package reads your property types and adds rules for you. For the class above:
+The package looks at your property types and adds rules for you. For the class above:
 
 | Property | Inferred rules |
 | --- | --- |
 | `string $name` | `required`, `string` |
-| `?string $phone = null` | `nullable`, `string` — skipped entirely when the field is missing, because it has a default |
-| `bool $marketingOptIn = false` | `required`, `boolean` — also skipped when the field is missing |
+| `?string $phone = null` | `nullable`, `string`; skipped entirely when the field is missing, because it has a default |
+| `bool $marketingOptIn = false` | `required`, `boolean`; also skipped when the field is missing |
 | A backed enum type | `Rule::enum()` for that enum |
 
 ### Your own rules, attributes and messages
 
-For anything beyond types, add a static `rules()` method. Rules you return for a field **replace** the inferred rules for that field, so write the complete list:
+For anything the types can't express, add a static `rules()` method. Be careful here: rules you return for a field **replace** the inferred rules for that field, so write out the complete list.
 
 ```php
 public static function rules(): array
@@ -124,13 +124,13 @@ public static function rules(): array
 }
 ```
 
-Static `attributes()` and `messages()` methods work like their Form Request counterparts, so you can use translated field names and messages. For short rules, validation attributes such as `#[Max(255)]` or `#[Email]` on the property are an alternative.
+Static `attributes()` and `messages()` methods behave like their Form Request equivalents, so translated field names and messages work as you'd expect. For short rules you can use validation attributes on the property instead, such as `#[Max(255)]` or `#[Email]`.
 
-By default the package validates automatically only when the payload is a request. To validate a plain array — from an import or an API webhook — call `CustomerData::validateAndCreate($array)`.
+One thing that surprises people: the package only validates automatically when the payload is a request. If you're building from a plain array (say from an import or an API webhook), call `CustomerData::validateAndCreate($array)`.
 
 ## Mapping snake_case input to camelCase properties
 
-HTML forms and JSON usually send `marketing_opt_in`, while PHP code prefers `$marketingOptIn`. Instead of renaming by hand, add a name mapper to the class:
+Forms and JSON usually send `marketing_opt_in`, while PHP code prefers `$marketingOptIn`. Rather than renaming by hand, add a name mapper to the class:
 
 ```php
 use Spatie\LaravelData\Attributes\MapName;
@@ -143,11 +143,11 @@ class CustomerData extends Data
 }
 ```
 
-`MapName` works in both directions: `marketing_opt_in` is read into `$marketingOptIn`, and it's written back as `marketing_opt_in` when the object is transformed to an array. Remember that the keys in `rules()` use the input names (`marketing_opt_in`), not the property names.
+`MapName` works both ways. `marketing_opt_in` is read into `$marketingOptIn`, and it's written back out as `marketing_opt_in` when the object becomes an array. Just remember that the keys in `rules()` use the input names (`marketing_opt_in`), not the property names.
 
 ## Building Data objects from models
 
-`from($model)` copies matching attributes automatically. When you need formatting, computed values or relations, add a static method whose name starts with `from`. The package calls it automatically when `from()` receives a matching type:
+`from($model)` copies matching attributes on its own. When you need formatting, computed values or relations, add a static method whose name starts with `from`, and the package will call it whenever `from()` receives a matching type:
 
 ```php
 public static function fromModel(Customer $customer): self
@@ -161,11 +161,11 @@ public static function fromModel(Customer $customer): self
 }
 ```
 
-For lists, `CustomerData::collect($customers)` maps a collection. It also works on paginators and keeps the pagination metadata. In a query you can map each page item with `->paginate(15)->through(fn ($c) => CustomerData::from($c))`.
+Lists are handled by `CustomerData::collect($customers)`. It works on paginators too and keeps the pagination metadata. Inside a query, you can map each page item with `->paginate(15)->through(fn ($c) => CustomerData::from($c))`.
 
 ### Relations without N+1 queries
 
-Nested data is where Data objects can quietly cause extra queries. Wrap relation-based properties in `Lazy::whenLoaded()` so they're only included when the relation was eager loaded:
+Nested data is where Data objects can quietly add queries. Wrap relation-based properties in `Lazy::whenLoaded()` so they're only included if the relation was eager loaded:
 
 ```php
 orders: Lazy::whenLoaded(
@@ -175,11 +175,11 @@ orders: Lazy::whenLoaded(
 ),
 ```
 
-Load `orders` with `with('orders')` on the detail page and the orders appear. Leave it out on the index page and nothing is queried. Other lazy types exist too, such as `Lazy::create()` for values you include explicitly with `->include('orders')`.
+On the detail page, load `orders` with `with('orders')` and they appear. Leave it out on the index page and nothing gets queried. There are other lazy types as well, such as `Lazy::create()` for values you include explicitly with `->include('orders')`.
 
 ## Sending Data objects as Inertia props
 
-A Data object can be passed straight to an Inertia page. Inertia turns it into an array when it builds the response:
+You can pass a Data object straight to an Inertia page. Inertia converts it to an array while building the response:
 
 ```php
 return Inertia::render('customers/Show', [
@@ -187,20 +187,19 @@ return Inertia::render('customers/Show', [
 ]);
 ```
 
-This is safer than passing the model. Only the properties you declared reach the browser, so a new `internal_notes` column or a hidden token doesn't leak into your page props by accident. Returning a Data object from a controller outside Inertia gives you a JSON response.
+We prefer this to passing the model, and the reason is safety. Only the properties you declared reach the browser, so a new `internal_notes` column or a hidden token can't slip into your page props by accident. Outside Inertia, returning a Data object from a controller gives you a JSON response.
 
-Add the `#[TypeScript]` attribute and the Laravel TypeScript transformer can generate a matching TypeScript type for your frontend. That setup is covered in [generating TypeScript types from PHP](/blog/laravel-typescript-types-from-php.html).
+Add the `#[TypeScript]` attribute and the Laravel TypeScript transformer can generate a matching TypeScript type for the frontend. The setup is in our post on [generating TypeScript types from PHP](/blog/laravel-typescript-types-from-php.html).
 
-## When not to use Data objects
+## When a plain array is the better choice
 
-Data objects are worth it at boundaries: request input, service input, page props. They're not worth it everywhere:
+Data objects pay off at boundaries: request input, service input, page props. Inside those boundaries they're often just ceremony. A tiny array that lives inside one method, like query options or a lookup table, doesn't need a class.
 
-- **Tiny local arrays** inside one method, such as query options or a lookup table.
-- **Business logic.** A Data object shouldn't save models, send emails or decide permissions — that belongs in your [Laravel service layer](/blog/laravel-service-layer-pattern.html).
-- **Authorization.** Use policies, gates or middleware. Data objects have no `authorize()` hook.
-- **Huge relation graphs.** Transforming thousands of nested objects has a cost. Paginate and load only what the page shows.
+They also aren't the place for business logic. A Data object shouldn't save models, send emails or decide permissions; that work belongs in your [Laravel service layer](/blog/laravel-service-layer-pattern.html). Authorization is similar. Use policies, gates or middleware, because Data objects have no `authorize()` hook.
 
-How do they compare with the tools Laravel already has?
+Finally, watch out for huge relation graphs. Transforming thousands of nested objects isn't free, so paginate and load only what the page actually shows.
+
+How do they stack up against the tools Laravel already gives you?
 
 | Need | Form Request | API Resource | Data object |
 | --- | --- | --- | --- |
@@ -210,17 +209,17 @@ How do they compare with the tools Laravel already has?
 | Authorization hook | Yes | No | No |
 | Generate TypeScript types | No | No | Yes, with the transformer |
 
-Many apps use both: Data objects for most forms, and Form Requests for small endpoints like "confirm your password". How controllers use them is covered in [thin controllers in Laravel](/blog/laravel-thin-controllers.html).
+Plenty of apps use both, and so would we: Data objects for most forms, Form Requests for small endpoints like "confirm your password". For how controllers put them to work, see [thin controllers in Laravel](/blog/laravel-thin-controllers.html).
 
 ## Frequently asked questions
 
 ### Is spatie/laravel-data the same as spatie/data-transfer-object?
 
-No. `spatie/data-transfer-object` is Spatie's older, deprecated DTO package. `spatie/laravel-data` is its Laravel-specific successor, with request validation, model mapping and TypeScript support built in.
+No. `spatie/data-transfer-object` is Spatie's older DTO package, and it's deprecated. `spatie/laravel-data` is the Laravel-specific successor, with request validation, model mapping and TypeScript support built in.
 
 ### Does laravel-data replace Form Requests?
 
-It can for most forms, since a Data object validates input and gives you typed properties. Form Requests are still handy when you need their `authorize()` method or when the input never leaves the controller.
+For most forms it can, since a Data object validates input and gives you typed properties. Form Requests are still useful when you need `authorize()` or when the input never leaves the controller.
 
 ### Can I use laravel-data for JSON APIs?
 
@@ -228,10 +227,10 @@ Yes. Return a Data object, a collection or a paginated collection from a control
 
 ### Does laravel-data slow down my app?
 
-The package uses reflection to analyse each class. In production, `php artisan data:cache-structures` caches that analysis. It scans the directories listed under `structure_caching` in `config/data.php`, so add your own Data folders there if they live outside `app/Data`.
+The package uses reflection to analyse each class. In production, run `php artisan data:cache-structures` to cache that analysis. It scans the directories listed under `structure_caching` in `config/data.php`, so add your own Data folders there if they live outside `app/Data`.
 
 ## How SaaS Laravel uses Data objects
 
-The SaaS Laravel kits use spatie/laravel-data 4 throughout the backend. Each [feature module](/blog/modular-laravel-architecture.html) keeps its Data classes in its own `Data` folder — `TenantRegisterData`, `DomainData`, `UserData`, `RoleData` and more — with `#[MapName(SnakeCaseMapper::class)]`, translated `rules()`, `attributes()` and `messages()`, `fromModel()` methods, and lazy properties for relations such as a user's roles or a tenant's domains. Controllers type-hint these classes, and `#[TypeScript]` classes are exported as TypeScript types for the Vue, React and Svelte frontends. See the [architecture documentation](/docs/core/architecture.html) for how the layers fit together.
+The SaaS Laravel kits already use spatie/laravel-data 4 across the backend, if you'd like to see these patterns in a real codebase. Each [feature module](/blog/modular-laravel-architecture.html) keeps its Data classes in its own `Data` folder (`TenantRegisterData`, `DomainData`, `UserData`, `RoleData` and more), using `#[MapName(SnakeCaseMapper::class)]`, translated `rules()`, `attributes()` and `messages()`, `fromModel()` methods, and lazy properties for relations such as a user's roles or a tenant's domains. Controllers type-hint these classes, and `#[TypeScript]` classes are exported as TypeScript types for the Vue, React and Svelte frontends. The [architecture documentation](/docs/core/architecture.html) shows how the layers fit together.
 
 <BlogPostCta title="Typed data from backend to frontend" text="SaaS Laravel uses spatie/laravel-data with generated TypeScript types, services and thin controllers, plus multi-tenancy and authentication, in Vue, React or Svelte." />

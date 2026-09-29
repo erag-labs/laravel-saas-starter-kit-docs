@@ -31,11 +31,11 @@ head:
 
 <BlogPostMeta />
 
-Anyone can type any address into a sign-up form. **Laravel email verification** makes sure the person behind an account can actually read that inbox before they reach the parts of your app that matter. This guide explains how the built-in flow works, how to switch it on with Laravel Fortify, how to build the "check your inbox" page in Inertia, and the edge cases: changed emails, expired links and users who open the link on another device.
+Anyone can type any address into a sign-up form. Laravel email verification checks that the person behind an account can actually read that inbox before they get to the parts of your app that matter. I'll go through how the built-in flow works, how to turn it on with Laravel Fortify and how to build the "check your inbox" page in Inertia. Then the edge cases: changed emails, expired links and users who open the link on a different device.
 
 ## How Laravel email verification works
 
-Laravel ships every piece of the flow. Fortify only adds the routes and controllers on top.
+Laravel ships every piece of the flow. Fortify just adds the routes and controllers on top.
 
 ```text
 POST /register
@@ -48,17 +48,13 @@ User clicks the link
   → redirect to your app with ?verified=1
 ```
 
-Three details make the link safe:
+What makes the link safe is how it's built. It's signed, so the `signed` middleware rejects any URL whose query string was changed. It expires after `auth.verification.expire` minutes, 60 by default. And it's tied to the address: the `hash` segment is a SHA-1 of the user's current email, so once the email changes, old links stop working.
 
-- **It is signed.** The `signed` middleware rejects any URL whose query string was changed.
-- **It expires.** The link is valid for `auth.verification.expire` minutes, 60 by default.
-- **It is tied to the address.** The `hash` segment is a SHA-1 of the user's current email. If the email changes, old links stop working.
-
-The listener is registered by the framework automatically. It only sends the email when the user model implements `MustVerifyEmail` and isn't verified yet.
+The framework registers the listener for you. It only sends the email when the user model implements `MustVerifyEmail` and the user isn't verified yet.
 
 ## Step 1: Implement MustVerifyEmail
 
-Laravel's base `User` class already uses the `MustVerifyEmail` trait, which provides `hasVerifiedEmail()`, `markEmailAsVerified()` and `sendEmailVerificationNotification()`. What switches verification on is the **interface**:
+Laravel's base `User` class already uses the `MustVerifyEmail` trait. That trait gives you `hasVerifiedEmail()`, `markEmailAsVerified()` and `sendEmailVerificationNotification()`. It isn't what switches verification on, though. The **interface** is:
 
 ```php
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -70,11 +66,11 @@ class User extends Authenticatable implements MustVerifyEmail
 }
 ```
 
-Without the interface, the listener sends nothing and the `verified` middleware lets everyone through. That is the most common reason for "my verification emails never arrive". The `users` table also needs a nullable `email_verified_at` timestamp, which the default migration already has.
+Without the interface, the listener sends nothing and the `verified` middleware lets everyone through. It's the most common reason verification emails never arrive, so it's the first thing I'd check. The `users` table also needs a nullable `email_verified_at` timestamp, which the default migration already has.
 
 ## Step 2: Enable the Fortify routes
 
-With [Laravel Fortify](/blog/laravel-fortify-tutorial.html), add the feature to `config/fortify.php`:
+If you use [Laravel Fortify](/blog/laravel-fortify-tutorial.html), add the feature in `config/fortify.php`:
 
 ```php
 'features' => [
@@ -92,9 +88,9 @@ Fortify then registers three routes, all for signed-in users:
 | GET | `/email/verify/{id}/{hash}` | `verification.verify` | The link in the email |
 | POST | `/email/verification-notification` | `verification.send` | Resend the email |
 
-The link and resend routes use the limiter in `fortify.limiters.verification`, which defaults to six requests per minute. The link route also checks that the `id` belongs to the signed-in user and that the `hash` matches their current email.
+The link and resend routes are throttled by the limiter in `fortify.limiters.verification`, which allows six requests per minute by default. On top of that, the link route checks that the `id` belongs to the signed-in user and that the `hash` matches their current email.
 
-Tell Fortify which page to render for the notice:
+Next, tell Fortify which page to render for the notice:
 
 ```php
 Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/VerifyEmail', [
@@ -102,11 +98,11 @@ Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/VerifyEm
 ]));
 ```
 
-If the user is already verified, the notice route skips the page and redirects them into the app.
+Users who are already verified never see that page. The notice route redirects them straight into the app.
 
 ## Step 3: Protect routes with the verified middleware
 
-Verification only matters if something depends on it. Add `verified` next to `auth` on every route that should require a confirmed address:
+Verification is pointless unless something depends on it. Put `verified` next to `auth` on every route that should need a confirmed address:
 
 ```php
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -115,13 +111,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 ```
 
-An unverified user who hits one of these routes is redirected to `verification.notice`. JSON requests get a 403 with "Your email address is not verified." instead. To send users to a different route, pass its name: `verified:onboarding.verify`.
+An unverified user who hits one of these routes gets redirected to `verification.notice`. JSON requests get a 403 with "Your email address is not verified." instead. If you want users sent somewhere else, pass a route name: `verified:onboarding.verify`.
 
-Leave profile and logout routes reachable without `verified`, so a user who typed the wrong address can fix it.
+Keep the profile and logout routes outside `verified`. Someone who typed the wrong address needs a way to fix it.
 
 ## The "check your inbox" page in Inertia
 
-The page needs two actions: resend the email, and log out. Fortify flashes `status` as `verification-link-sent` after a resend, so show a confirmation for that value:
+This page needs two actions: resend the email, and log out. After a resend, Fortify flashes `status` as `verification-link-sent`, so show a confirmation when you get that value:
 
 ```vue
 <script setup lang="ts">
@@ -140,11 +136,11 @@ defineProps<{ status?: string }>();
 </template>
 ```
 
-Tell the user which address you sent the link to, and give them a way to change it. Most "I never got the email" tickets are typos.
+I'd also show which address the link went to, with a way to change it. Most "I never got the email" tickets are typos.
 
 ## Customising the verification email
 
-Both the message and the URL can be changed from a service provider's `boot()` method:
+You can change both the message and the URL from a service provider's `boot()` method:
 
 ```php
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -158,13 +154,13 @@ VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
 });
 ```
 
-`VerifyEmail::createUrlUsing()` replaces the link itself, which is useful when a separate frontend handles the click. To change the lifetime, add a `verification.expire` value (in minutes) to `config/auth.php`.
+`VerifyEmail::createUrlUsing()` replaces the link itself, which is handy when a separate frontend handles the click. To change how long links last, add a `verification.expire` value (in minutes) to `config/auth.php`.
 
-The notification is sent synchronously by default, so a slow mail server slows down registration. To queue it, create a notification that extends `VerifyEmail`, implements `ShouldQueue` and uses the `Queueable` trait, then override `sendEmailVerificationNotification()` on your user model to send that class instead. Remember to run a queue worker.
+By default the notification goes out synchronously, so a slow mail server makes registration slow. I'd queue it. Create a notification that extends `VerifyEmail`, implements `ShouldQueue` and uses the `Queueable` trait, then override `sendEmailVerificationNotification()` on your user model so it sends that class instead. Don't forget to run a queue worker.
 
 ## When a user changes their email
 
-A verified account that switches to a new address is unverified again. Handle it where the profile is updated, ideally in a service rather than the controller:
+A verified account that switches to a new address is unverified again. Handle that where the profile gets updated, and put it in a service rather than the controller:
 
 ```php
 $user->fill($data);
@@ -180,7 +176,7 @@ if ($user->wasChanged('email') && $user instanceof MustVerifyEmail) {
 }
 ```
 
-Because the link hash is based on the current email, any link sent to the old address is now useless.
+Since the link hash is built from the current email, any link sent to the old address is now useless.
 
 ## Edge cases to plan for
 
@@ -192,28 +188,28 @@ Because the link hash is based on the current email, any link sent to the old ad
 | User was invited by an admin | They proved ownership by opening the invite link | Set `email_verified_at` when they accept, see [user invitations with signed URLs](/blog/laravel-user-invitations-signed-urls.html) |
 | Accounts created by seeders | No email is sent | Set `email_verified_at` in the seeder |
 
-For local development, set `MAIL_MAILER=log` and copy the link from `storage/logs/laravel.log`.
+In local development, set `MAIL_MAILER=log` and copy the link out of `storage/logs/laravel.log`.
 
 ## Frequently asked questions
 
 ### Why is Laravel not sending the verification email?
 
-Usually because the user model doesn't implement `MustVerifyEmail`, so the listener skips it. Also check your mail settings, and if you queued the notification, that a queue worker is running.
+Usually the user model doesn't implement `MustVerifyEmail`, so the listener skips it. After that, check your mail settings. If you queued the notification, make sure a queue worker is running.
 
 ### How long is a Laravel email verification link valid?
 
-Sixty minutes by default. Change it with `verification.expire` in `config/auth.php`. After that, the user requests a new link from the notice page.
+Sixty minutes by default. You can change it with `verification.expire` in `config/auth.php`. Once it has expired, the user requests a new link from the notice page.
 
 ### Can users log in before verifying their email?
 
-Yes. Verification doesn't block login; it blocks the routes you protect with the `verified` middleware. That is what lets unverified users reach the resend page.
+Yes. Verification doesn't block login. It blocks the routes you protect with the `verified` middleware, and that's exactly what lets unverified users reach the resend page.
 
 ### Should I block login until the email is verified?
 
-It is rarely worth it. Letting users in but gating the important routes gives them a clear next step. For signup abuse, combine verification with [login rate limiting](/blog/laravel-login-rate-limiting.html) and a rate limit on your registration route.
+I wouldn't. Letting users in and gating the important routes gives them a clear next step. If signup abuse is the worry, combine verification with [rate limiting on login](/blog/laravel-login-rate-limiting.html) and a rate limit on your registration route.
 
 ## Email verification in SaaS Laravel
 
-The SaaS Laravel kits enable `Features::emailVerification()` and include a Verify Email page in Vue, React and Svelte with resend and logout buttons. The app's module routes use `['auth', 'verified']`, but `App\Models\User` ships **without** `MustVerifyEmail` (the import is commented out), so verification is not enforced until you add the interface. The profile settings page resets `email_verified_at` when the email changes and offers a resend link. Seeded users and invited users who accept are marked as verified, and each tenant domain can turn verification off. See [email verification in the authentication docs](/docs/core/authentication.html#email-verification).
+In the SaaS Laravel kits, most of this is already in place. They enable `Features::emailVerification()` and include a Verify Email page in Vue, React and Svelte with resend and logout buttons. The app's module routes use `['auth', 'verified']`. One catch: `App\Models\User` ships **without** `MustVerifyEmail` (the import is commented out), so verification isn't enforced until you add the interface. The profile settings page resets `email_verified_at` when the email changes and offers a resend link. Seeded users, and invited users who accept, are marked as verified, and each tenant domain can turn verification off. The details are in [email verification in the authentication docs](/docs/core/authentication.html#email-verification).
 
 <BlogPostCta title="Email verification, ready to switch on" text="SaaS Laravel includes Fortify email verification pages, signed invitation links and per-domain auth settings on a multi-tenant Laravel backend." />
