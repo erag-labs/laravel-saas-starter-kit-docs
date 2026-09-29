@@ -4,6 +4,7 @@ description: "How to test Laravel tenancy with Pest: test database setup, creati
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: multi-tenancy
 tags: [Multi-tenancy, Testing]
 head:
   - - link

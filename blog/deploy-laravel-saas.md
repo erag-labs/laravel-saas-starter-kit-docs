@@ -4,6 +4,7 @@ description: "Deploy a Laravel SaaS step by step: server needs, wildcard DNS and
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: saas
 tags: [Multi-tenancy, Deployment]
 head:
   - - link

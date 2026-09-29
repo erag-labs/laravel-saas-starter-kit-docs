@@ -4,6 +4,7 @@ description: "Laravel Pest testing for SaaS apps: what to test, setup, feature t
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: architecture
 tags: [Testing, Code quality]
 head:
   - - link

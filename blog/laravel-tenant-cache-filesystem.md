@@ -4,6 +4,7 @@ description: "How Laravel tenancy cache and file storage stay separate per tenan
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: multi-tenancy
 tags: [Multi-tenancy, Performance]
 head:
   - - link

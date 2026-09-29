@@ -4,6 +4,7 @@ description: "A practical guide to the Inertia Form component: field names, erro
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: frontend
 tags: [Inertia, Frontend]
 head:
   - - link

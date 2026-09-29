@@ -4,6 +4,7 @@ description: "Laravel React Inertia guide for SaaS apps: typed page components, 
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [React, Inertia]
 head:
   - - link

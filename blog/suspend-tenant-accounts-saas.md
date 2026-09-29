@@ -4,6 +4,7 @@ description: "How to suspend a SaaS account the right way: status fields, blocki
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: saas
 tags: [Multi-tenancy, Operations]
 head:
   - - link

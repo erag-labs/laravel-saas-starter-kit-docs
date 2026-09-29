@@ -4,6 +4,7 @@ description: "Stripe vs Paddle vs Lemon Squeezy for a Laravel SaaS: merchant of 
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: saas
 tags: [Billing, Payments]
 head:
   - - link

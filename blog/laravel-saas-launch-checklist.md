@@ -4,6 +4,7 @@ description: "A SaaS launch checklist for Laravel apps: product, security, billi
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: saas
 tags: [SaaS, Launch]
 head:
   - - link

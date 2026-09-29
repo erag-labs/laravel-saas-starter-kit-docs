@@ -4,6 +4,7 @@ description: "Store a Laravel user locale, validate and save the choice, apply i
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: localization
 tags: [Localization, Laravel]
 head:
   - - link

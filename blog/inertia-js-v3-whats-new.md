@@ -4,6 +4,7 @@ description: "Inertia v3 for Laravel explained: the new Vite plugin, useHttp, op
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [Inertia, Frontend]
 head:
   - - link

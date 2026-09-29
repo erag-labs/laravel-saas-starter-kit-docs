@@ -4,6 +4,7 @@ description: "Use the Laravel TypeScript transformer to turn PHP classes, enums 
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: architecture
 tags: [TypeScript, Code quality]
 head:
   - - link

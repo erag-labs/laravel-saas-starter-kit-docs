@@ -4,6 +4,7 @@ description: "shadcn Laravel guide: set up shadcn/ui, shadcn-vue or shadcn-svelt
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [UI, Inertia]
 head:
   - - link

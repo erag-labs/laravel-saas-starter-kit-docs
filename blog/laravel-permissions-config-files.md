@@ -4,6 +4,7 @@ description: "Build a Laravel permissions seeder driven by config files: file la
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: permissions
 tags: [Permissions, Database]
 head:
   - - link

@@ -4,6 +4,7 @@ description: "Laravel password rules explained: Password::defaults(), length vs 
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: security
 tags: [Authentication, Security, Validation]
 head:
   - - link

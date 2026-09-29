@@ -4,6 +4,7 @@ description: "An honest look at the Laravel repository pattern: when a repositor
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: architecture
 tags: [Architecture, Code quality]
 head:
   - - link

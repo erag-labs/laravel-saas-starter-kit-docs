@@ -4,6 +4,7 @@ description: "How Laravel tenancy queue jobs keep their tenant: the stancl queue
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: multi-tenancy
 tags: [Multi-tenancy, Queues]
 head:
   - - link

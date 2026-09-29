@@ -4,6 +4,7 @@ description: "A hands-on stancl tenancy tutorial: install stancl/tenancy 3, crea
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: multi-tenancy
 tags: [Multi-tenancy, Tutorial]
 head:
   - - link

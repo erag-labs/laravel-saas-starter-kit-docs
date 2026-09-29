@@ -4,6 +4,7 @@ description: "How Laravel Wayfinder turns your routes and controllers into typed
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: architecture
 tags: [TypeScript, Inertia]
 head:
   - - link

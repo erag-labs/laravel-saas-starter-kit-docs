@@ -4,6 +4,7 @@ description: "Laravel Svelte 5 tutorial with Inertia v3: runes in pages, module-
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [Svelte, Inertia]
 head:
   - - link

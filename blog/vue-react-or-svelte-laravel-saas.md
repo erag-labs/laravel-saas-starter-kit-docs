@@ -4,6 +4,7 @@ description: "How to choose between Vue, React and Svelte for a Laravel SaaS bui
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [Frontend, Inertia]
 head:
   - - link

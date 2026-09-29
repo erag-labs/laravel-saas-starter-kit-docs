@@ -4,6 +4,7 @@ description: "A practical spatie laravel data guide: build typed Data objects, v
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: architecture
 tags: [Architecture, Code quality]
 head:
   - - link

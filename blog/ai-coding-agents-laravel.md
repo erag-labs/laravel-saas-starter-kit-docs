@@ -4,6 +4,7 @@ description: "AI coding in Laravel that holds up in review: guideline files, ski
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: tooling
 tags: [AI, Workflow]
 head:
   - - link

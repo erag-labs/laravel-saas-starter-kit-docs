@@ -7,6 +7,8 @@ export interface Post {
   date: string;
   readingTime: number;
   tags: string[];
+  author: string;
+  category: string;
 }
 
 declare const data: Post[];
@@ -23,6 +25,8 @@ export default createContentLoader('blog/*.md', {
         date: new Date(frontmatter.date).toISOString(),
         readingTime: Math.max(1, Math.round((src ?? '').replace(/^---[\s\S]*?---/, '').split(/\s+/).length / 220)),
         tags: frontmatter.tags ?? [],
+        author: frontmatter.author ?? 'erag',
+        category: frontmatter.category ?? '',
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
 });

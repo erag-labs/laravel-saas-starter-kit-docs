@@ -4,6 +4,7 @@ description: "Define Laravel default roles in an enum, seed them safely and bloc
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: permissions
 tags: [Permissions, Security]
 head:
   - - link

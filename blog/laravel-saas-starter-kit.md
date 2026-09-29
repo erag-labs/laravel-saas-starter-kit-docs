@@ -4,6 +4,7 @@ description: "What a Laravel SaaS starter kit should include, how to compare kit
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: saas
 tags: [Starter kits, Buyer's guide]
 head:
   - - link

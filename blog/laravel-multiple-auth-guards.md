@@ -4,6 +4,7 @@ description: "Set up Laravel multiple guards for admins and customers: auth.php 
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: security
 tags: [Authentication, Security]
 head:
   - - link

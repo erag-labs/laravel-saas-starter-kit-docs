@@ -3,6 +3,7 @@ title: "Laravel Multi-Tenancy with Subdomains"
 description: "A Laravel multi-tenancy subdomain guide for stancl/tenancy: identification middleware, central domains, tenant routes, sessions, wildcard DNS and links."
 date: 2026-09-29
 author: erag
+category: multi-tenancy
 tags: [Multi-tenancy, Routing]
 pageClass: blog-page
 head:

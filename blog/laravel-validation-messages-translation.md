@@ -4,6 +4,7 @@ description: "Laravel validation messages translation explained: the lookup orde
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: localization
 tags: [Localization, Validation]
 head:
   - - link

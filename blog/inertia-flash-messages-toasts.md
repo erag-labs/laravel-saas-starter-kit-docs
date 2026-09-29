@@ -4,6 +4,7 @@ description: "Show an Inertia flash message as a toast after a Laravel redirect:
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [Inertia, Frontend]
 head:
   - - link

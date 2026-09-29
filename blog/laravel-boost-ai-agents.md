@@ -4,6 +4,7 @@ description: "Laravel Boost gives AI coding agents real context on your app: wha
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: tooling
 tags: [AI, Tooling]
 head:
   - - link

@@ -4,6 +4,7 @@ description: "A git upstream merge workflow for starter kits: set up origin and 
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: tooling
 tags: [Git, Workflow]
 head:
   - - link

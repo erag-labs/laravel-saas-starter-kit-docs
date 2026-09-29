@@ -4,6 +4,7 @@ description: "How Laravel passkeys work with WebAuthn and Fortify: the register 
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: security
 tags: [Authentication, Security]
 head:
   - - link

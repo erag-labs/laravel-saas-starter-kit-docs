@@ -575,6 +575,19 @@
   }
 }
 
+/* The blog index has its own sidebar, so it uses the full container width. */
+@media (min-width: 960px) {
+  .blog-index .VPDoc:not(.has-sidebar) .content {
+    max-width: 1200px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .blog-index .VPDoc:not(.has-sidebar) .content {
+    max-width: 1280px !important;
+  }
+}
+
 .blog-page .VPDoc.has-aside .content-container {
   max-width: 840px !important;
 }

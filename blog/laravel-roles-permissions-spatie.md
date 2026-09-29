@@ -4,6 +4,7 @@ description: "A practical Laravel Spatie permission guide: roles, permissions an
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: permissions
 tags: [Permissions, Security]
 head:
   - - link

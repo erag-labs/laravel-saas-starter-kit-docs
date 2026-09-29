@@ -82,6 +82,28 @@ export const blogAuthors: Record<string, BlogAuthor> = {
 
 export const blogAuthor = (key?: string): BlogAuthor => blogAuthors[key ?? ''] ?? blogAuthors.erag;
 
+/** Blog topics, referenced by key from a post's `category` frontmatter. */
+export const blogCategories = [
+  { key: 'multi-tenancy', label: 'Multi-tenancy' },
+  { key: 'security', label: 'Authentication & security' },
+  { key: 'permissions', label: 'Users & permissions' },
+  { key: 'architecture', label: 'Architecture & code quality' },
+  { key: 'frontend', label: 'Inertia & frontends' },
+  { key: 'localization', label: 'Localization' },
+  { key: 'saas', label: 'SaaS & operations' },
+  { key: 'tooling', label: 'AI & developer tooling' },
+] as const;
+
+/** Pillar articles shown under "Start here" on the blog index. */
+export const blogStartHere = [
+  '/blog/laravel-saas-starter-kit.html',
+  '/blog/multi-tenant-saas-laravel-database-per-tenant.html',
+  '/blog/laravel-fortify-tutorial.html',
+  '/blog/laravel-roles-permissions-spatie.html',
+  '/blog/modular-laravel-architecture.html',
+  '/blog/vue-react-or-svelte-laravel-saas.html',
+];
+
 export const backendStack: StackItem[] = [
   { label: 'Framework', value: 'Laravel 13 on PHP 8.3+' },
   { label: 'Bridge', value: 'Inertia v3 (inertia-laravel)' },

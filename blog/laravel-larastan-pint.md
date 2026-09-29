@@ -4,6 +4,7 @@ description: "Set up Larastan and Pint in a Laravel project: code style presets,
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: architecture
 tags: [Code quality, Tooling]
 head:
   - - link

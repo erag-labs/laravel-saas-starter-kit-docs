@@ -4,6 +4,7 @@ description: "Laravel email verification explained: MustVerifyEmail, signed link
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: security
 tags: [Authentication, Security]
 head:
   - - link

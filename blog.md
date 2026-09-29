@@ -1,7 +1,7 @@
 ---
 title: "Laravel SaaS Blog"
 description: "Practical guides on building SaaS products with Laravel: multi-tenancy, architecture, authentication and choosing between Vue, React and Svelte."
-pageClass: blog-page
+pageClass: blog-page blog-index
 aside: false
 editLink: false
 lastUpdated: false

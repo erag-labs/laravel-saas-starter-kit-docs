@@ -4,6 +4,7 @@ description: "Single database vs multi database tenancy in Laravel: the decision
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: multi-tenancy
 tags: [Multi-tenancy, Architecture]
 head:
   - - link

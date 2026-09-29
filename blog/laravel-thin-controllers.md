@@ -4,6 +4,7 @@ description: "How to write Laravel thin controllers: the four jobs a controller 
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: architecture
 tags: [Architecture, Code quality]
 head:
   - - link

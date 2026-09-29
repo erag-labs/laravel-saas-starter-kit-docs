@@ -4,6 +4,7 @@ description: "Plan a multilingual Laravel app: what to translate, URL strategy a
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: localization
 tags: [Localization, SaaS]
 head:
   - - link

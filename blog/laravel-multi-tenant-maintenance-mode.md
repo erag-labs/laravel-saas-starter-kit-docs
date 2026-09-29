@@ -4,6 +4,7 @@ description: "Laravel maintenance mode in a multi-tenant SaaS: php artisan down 
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: saas
 tags: [Multi-tenancy, Operations]
 head:
   - - link

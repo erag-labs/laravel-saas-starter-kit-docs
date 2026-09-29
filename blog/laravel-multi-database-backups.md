@@ -4,6 +4,7 @@ description: "A Laravel database backup strategy for database-per-tenant SaaS ap
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: saas
 tags: [Multi-tenancy, Operations]
 head:
   - - link

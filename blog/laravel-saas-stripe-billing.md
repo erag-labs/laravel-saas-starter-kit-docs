@@ -4,6 +4,7 @@ description: "Add Laravel Stripe subscription billing to a multi-tenant SaaS wit
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: saas
 tags: [Billing, Stripe]
 head:
   - - link

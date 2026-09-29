@@ -4,6 +4,7 @@ description: "A practical SaaS pricing guide for developers: value metrics, pric
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: saas
 tags: [SaaS, Pricing]
 head:
   - - link

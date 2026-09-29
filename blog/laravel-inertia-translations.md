@@ -4,6 +4,7 @@ description: "How to handle Laravel Inertia translations: share PHP lang files w
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: localization
 tags: [Localization, Inertia]
 head:
   - - link

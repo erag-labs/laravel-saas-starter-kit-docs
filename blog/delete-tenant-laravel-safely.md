@@ -4,6 +4,7 @@ description: "How to delete a tenant in Laravel safely: what stancl/tenancy remo
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: multi-tenancy
 tags: [Multi-tenancy, Operations]
 head:
   - - link

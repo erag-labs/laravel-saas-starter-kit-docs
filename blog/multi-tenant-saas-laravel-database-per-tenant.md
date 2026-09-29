@@ -4,6 +4,7 @@ description: "Single database, schema or database per tenant? How database-per-t
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: multi-tenancy
 tags: [Multi-tenancy, Architecture]
 head:
   - - link

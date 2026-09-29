@@ -4,6 +4,7 @@ description: "Build a Laravel super admin role with Spatie: Gate::before or Gate
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: permissions
 tags: [Permissions, Security]
 head:
   - - link

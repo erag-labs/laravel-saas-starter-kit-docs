@@ -4,6 +4,7 @@ description: "A Laravel Vue Inertia walkthrough for SaaS dashboards: typed props
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: frontend
 tags: [Vue, Inertia]
 head:
   - - link

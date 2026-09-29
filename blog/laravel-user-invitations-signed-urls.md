@@ -4,6 +4,7 @@ description: "Build a secure Laravel user invitation flow with temporary signed 
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: permissions
 tags: [Users, Security]
 head:
   - - link

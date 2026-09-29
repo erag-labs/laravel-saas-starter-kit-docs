@@ -4,6 +4,7 @@ description: "A Laravel SaaS security checklist: authentication, sessions, tenan
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: security
 tags: [Security, Multi-tenancy]
 head:
   - - link

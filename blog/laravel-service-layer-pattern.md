@@ -4,6 +4,7 @@ description: "The Laravel service layer explained: what belongs in a service cla
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: architecture
 tags: [Architecture, Code quality]
 head:
   - - link

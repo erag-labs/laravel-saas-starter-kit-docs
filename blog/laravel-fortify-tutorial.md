@@ -4,6 +4,7 @@ description: "A Laravel Fortify tutorial for Inertia apps: install Fortify, pick
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: security
 tags: [Authentication, Inertia]
 head:
   - - link

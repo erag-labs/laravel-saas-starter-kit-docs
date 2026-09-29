@@ -4,6 +4,7 @@ description: "Laravel tenant migrations and seeders with stancl/tenancy: central
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: multi-tenancy
 tags: [Multi-tenancy, Database]
 head:
   - - link

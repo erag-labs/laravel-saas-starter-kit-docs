@@ -4,6 +4,7 @@ description: "Should you start from a Laravel SaaS boilerplate or build from scr
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: saas
 tags: [Starter kits, SaaS]
 head:
   - - link

@@ -4,6 +4,7 @@ description: "A practical guide to Laravel modular architecture for SaaS: featur
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: architecture
 tags: [Architecture, Code quality]
 head:
   - - link

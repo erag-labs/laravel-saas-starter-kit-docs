@@ -4,6 +4,7 @@ description: "Handle Laravel Inertia permissions on the frontend: define menu it
 pageClass: blog-page
 date: 2026-09-29
 author: amit-gupta
+category: permissions
 tags: [Permissions, Inertia]
 head:
   - - link

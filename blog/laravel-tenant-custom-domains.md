@@ -4,6 +4,7 @@ description: "Add a Laravel tenant custom domain the safe way: storing and verif
 pageClass: blog-page
 date: 2026-09-29
 author: erag
+category: multi-tenancy
 tags: [Multi-tenancy, Domains]
 head:
   - - link

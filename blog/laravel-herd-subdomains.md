@@ -3,6 +3,7 @@ title: "Local Laravel Subdomains with Laravel Herd"
 description: "Set up Laravel Herd subdomains for a multi-tenant app: .test domains, herd link and herd secure, APP_URL and SESSION_DOMAIN, alternatives and common pitfalls."
 date: 2026-09-29
 author: erag
+category: saas
 tags: [Local development, Multi-tenancy]
 pageClass: blog-page
 head:

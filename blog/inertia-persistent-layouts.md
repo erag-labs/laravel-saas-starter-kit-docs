@@ -4,6 +4,7 @@ description: "How Inertia layouts work: persistent, nested and default layouts, 
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: frontend
 tags: [Inertia, Frontend]
 head:
   - - link

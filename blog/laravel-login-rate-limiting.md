@@ -4,6 +4,7 @@ description: "A Laravel login throttle guide: how Fortify limits sign-ins, choos
 pageClass: blog-page
 date: 2026-09-29
 author: annu-gupta
+category: security
 tags: [Authentication, Security]
 head:
   - - link
