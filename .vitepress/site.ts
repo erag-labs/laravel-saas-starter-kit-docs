@@ -67,6 +67,21 @@ export const site = {
   accessNote: 'Lifetime access with weekly updates.',
 };
 
+export interface BlogAuthor {
+  name: string;
+  type: 'Person' | 'Organization';
+  url?: string;
+}
+
+/** Blog authors, referenced by key from a post's `author` frontmatter. */
+export const blogAuthors: Record<string, BlogAuthor> = {
+  erag: { name: site.company.name, type: 'Organization', url: site.company.url },
+  'amit-gupta': { name: 'Amit Gupta', type: 'Person', url: 'https://github.com/eramitgupta' },
+  'annu-gupta': { name: 'Annu Gupta', type: 'Person' },
+};
+
+export const blogAuthor = (key?: string): BlogAuthor => blogAuthors[key ?? ''] ?? blogAuthors.erag;
+
 export const backendStack: StackItem[] = [
   { label: 'Framework', value: 'Laravel 13 on PHP 8.3+' },
   { label: 'Bridge', value: 'Inertia v3 (inertia-laravel)' },

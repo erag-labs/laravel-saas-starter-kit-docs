@@ -43,7 +43,7 @@ A kit is a standard Laravel app with one addition: features live in `Modules/` i
 
 ::: details View the full directory tree (Vue kit)
 ```text
-my-saas/
+vue/
 ├── app/
 │   ├── Concerns/                  # PasswordValidationRules, ProfileValidationRules
 │   ├── Http/Middleware/           # HandleInertiaRequests, InitializeTenancyIfTenantDomain,

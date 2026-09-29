@@ -47,7 +47,7 @@ const items: { icon: IconName; title: string; text: string }[] = [
         </div>
       </div>
       <div class="dx-terminal">
-        <div class="dx-terminal-bar"><i /><i /><i /><span>~/code/my-saas</span></div>
+        <div class="dx-terminal-bar"><i /><i /><i /><span>~/code/vue</span></div>
         <pre class="dx-terminal-body"><code><span class="dim"># install dependencies, create .env, migrate, build</span>
 <span class="prompt">$</span> composer setup
 <span class="ok">✓</span> Application key set

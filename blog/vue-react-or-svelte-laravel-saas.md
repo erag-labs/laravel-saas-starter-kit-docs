@@ -3,6 +3,7 @@ title: "Vue, React or Svelte for Your Laravel SaaS?"
 description: "How to choose between Vue, React and Svelte for a Laravel SaaS built with Inertia: what really changes, an honest comparison and a simple decision guide."
 pageClass: blog-page
 date: 2026-09-29
+author: annu-gupta
 tags: [Frontend, Inertia]
 head:
   - - link
@@ -120,9 +121,49 @@ All three are production-ready, fast enough for any SaaS dashboard, and fully su
 3. **Is your team mostly Laravel developers?** Vue or Svelte will feel the most natural.
 4. **Still undecided?** Build one real screen — a form with validation and a table — in each. The one your team enjoys most is the right answer.
 
-## Can you switch later?
+## Everyday tasks in each framework
 
-With Inertia, yes — more easily than with a separate SPA. Your backend doesn't change at all; only the page components in `resources/js` need rewriting. That's still real work for a large app, so pick deliberately, but you're not locked in forever.
+The Inertia API is almost the same in all three adapters. What changes is how each framework expresses it:
+
+| Task | Vue 3 | React 19 | Svelte 5 |
+| --- | --- | --- | --- |
+| Receive page props | `defineProps<...>()` | Function parameters | `let { ... } = $props()` |
+| Local state | `ref()` / `computed()` | `useState()` / derived values | `$state` / `$derived` |
+| Set a page's layout | `defineOptions({ layout })` | `Page.layout = ...` | `export const layout` in `<script module>` |
+| Read shared props | `usePage()` | `usePage()` | The reactive `page` object |
+| Forms | `<Form>` or `useForm()` | `<Form>` or `useForm()` | `<Form>` or `useForm()` |
+| React to changes | `watch()` | Event handlers or `useEffect()` | `$effect()` |
+| Type checking | `vue-tsc` | `tsc` | `svelte-check` |
+
+If one column reads naturally to your team, that is a strong hint.
+
+## Go deeper: Inertia and frontend guides
+
+- [Building a Laravel SaaS dashboard with Vue](/blog/laravel-vue-inertia-saas.html), [with React](/blog/laravel-react-inertia-saas.html) and [with Svelte 5](/blog/laravel-svelte-inertia.html)
+- [Inertia.js v3: what's new for Laravel](/blog/inertia-js-v3-whats-new.html)
+- [Inertia forms with the Form component](/blog/inertia-form-component.html)
+- [Persistent layouts in Inertia](/blog/inertia-persistent-layouts.html)
+- [Flash messages and toasts with Inertia](/blog/inertia-flash-messages-toasts.html)
+- [shadcn for Laravel: Vue, React and Svelte](/blog/shadcn-laravel-inertia.html)
+- [Typed routes with Laravel Wayfinder](/blog/laravel-wayfinder-typed-routes.html)
+
+## Frequently asked questions
+
+### Can I switch frameworks later?
+
+With Inertia, yes, and more easily than with a separate SPA. Your routes, controllers and validation don't change; only the page components in `resources/js` need rewriting. That is still real work for a large app, so choose deliberately, but you are not locked in.
+
+### Is Laravel better with Vue or React?
+
+Neither is better for Laravel itself. Both have official Inertia adapters and first-class Vite support. Vue has a long history in the Laravel community; React has the largest ecosystem and hiring pool. Pick the one your team writes best.
+
+### Is Svelte ready for a production Laravel SaaS?
+
+Yes. Svelte 5 with runes is stable, Inertia has an official Svelte adapter, and shadcn-svelte gives you the same style of accessible components as the other two. Its ecosystem is smaller, so check that any library you depend on has a Svelte version.
+
+### Do I need TypeScript?
+
+It is optional, but worth it in a SaaS codebase. With tools that generate types from your PHP classes and routes, the compiler catches a renamed prop or route before your users do, in all three frameworks.
 
 ## Same backend, three frontends
 

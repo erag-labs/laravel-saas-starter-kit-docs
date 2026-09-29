@@ -39,22 +39,21 @@ After purchase, your GitHub account is automatically invited to the kit reposito
 ::: code-group
 
 ```bash [Vue]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git vue
+cd vue
 ```
 
 ```bash [React]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git react
+cd react
 ```
 
 ```bash [Svelte]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git svelte
+cd svelte
 ```
 
 :::
-
-```bash
-cd my-saas
-```
 
 ::: tip Keep updates easy
 Rename the kit remote to `upstream` right away and push to your own repository as `origin`. This makes weekly updates a simple merge. See [Updates](/docs/purchase/updates).

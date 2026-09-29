@@ -3,6 +3,7 @@ title: "How to Build a Multi-Tenant SaaS with Laravel"
 description: "Single database, schema or database per tenant? How database-per-tenant multi-tenancy works in Laravel with stancl/tenancy, plus the pitfalls to avoid."
 pageClass: blog-page
 date: 2026-09-29
+author: erag
 tags: [Multi-tenancy, Architecture]
 head:
   - - link
@@ -146,8 +147,42 @@ In a database-per-tenant app you usually have **two kinds of users**: your own p
 5. Plan backups, deletion and migration runs for many databases.
 6. Add the SaaS features every tenant needs: roles and permissions, invitations, per-tenant settings and a way to suspend or pause a workspace.
 
+## Go deeper: the multi-tenancy series
+
+Each part of a multi-tenant Laravel app has its own guide:
+
+| Topic | Guide |
+| --- | --- |
+| Choosing a data model | [Single vs multi-database tenancy in Laravel](/blog/single-vs-multi-database-tenancy-laravel.html) |
+| Installing the package | [stancl/tenancy tutorial: getting started](/blog/stancl-tenancy-tutorial.html) |
+| Identifying tenants | [Laravel multi-tenancy with subdomains](/blog/laravel-multi-tenancy-subdomains.html) and [custom domains for tenants](/blog/laravel-tenant-custom-domains.html) |
+| Schema changes | [Tenant migrations and seeders](/blog/laravel-tenant-migrations-seeders.html) |
+| Background work | [Queued jobs in a multi-tenant Laravel app](/blog/laravel-multi-tenant-queues.html) |
+| Isolation beyond the database | [Tenant-aware cache and file storage](/blog/laravel-tenant-cache-filesystem.html) |
+| Tests | [Testing multi-tenant Laravel apps with Pest](/blog/test-multi-tenant-laravel-pest.html) |
+| Offboarding | [Deleting tenants safely](/blog/delete-tenant-laravel-safely.html) |
+| Operations | [Backups for a multi-database Laravel SaaS](/blog/laravel-multi-database-backups.html) |
+
+## Frequently asked questions
+
+### Is database-per-tenant slower than a single database?
+
+Not per request. Each request still talks to one database, and tenant databases stay small, so queries are often faster. The cost shows up in operations instead: more databases to migrate, back up and monitor.
+
+### How many tenant databases can one MySQL server hold?
+
+There is no fixed limit that you will reach early. The practical limits are open files, memory and how long a migration run across every tenant takes. When one server gets busy, tenancy packages let you place new tenant databases on another server.
+
+### Can I report across all tenants?
+
+Yes, but not with a single SQL query, because the data lives in separate databases. Loop over tenants with a command such as `tenants:run`, or copy the figures you need into a central reporting table.
+
+### Do I need a separate domain for every tenant?
+
+No. Most SaaS apps give each tenant a subdomain of one wildcard domain, such as `acme.your-saas.com`. Custom domains are an optional extra for customers who want their own address.
+
 ## How SaaS Laravel handles this for you
 
-The [SaaS Laravel starter kits](/) are built on exactly this model. Each tenant gets its own database, identified by its subdomain. Creating a tenant runs a pipeline that creates the database, runs the tenant migrations, seeds roles, permissions and menus, and creates the tenant's first administrator. Central and tenant users use separate guards, and you also get per-domain settings, workspace status, suspension and global maintenance mode. Read more in the [multi-tenancy documentation](/docs/core/multi-tenancy).
+The [SaaS Laravel starter kits](/) are built on exactly this model. Each tenant gets its own database, identified by its subdomain. Creating a tenant runs a pipeline that creates the database, runs the tenant migrations, seeds roles, permissions and menus, and creates the tenant's first administrator. Central and tenant users use separate guards, and you also get per-domain settings, workspace status, suspension and global maintenance mode. Read more in the [multi-tenancy documentation](/docs/core/multi-tenancy.html).
 
 <BlogPostCta />

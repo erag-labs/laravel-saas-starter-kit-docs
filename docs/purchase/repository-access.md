@@ -63,15 +63,15 @@ If the invitation does not arrive, open an issue or contact the maintainer throu
 ::: code-group
 
 ```bash [Vue]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git vue
 ```
 
 ```bash [React]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git react
 ```
 
 ```bash [Svelte]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git my-saas
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git svelte
 ```
 
 :::

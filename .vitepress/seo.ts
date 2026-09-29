@@ -1,7 +1,7 @@
 import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { DefaultTheme, HeadConfig, PageData } from 'vitepress';
-import { frameworkKeys, kitPriceList, kits, paymentFaqs, plans, site, type FrameworkKey, type PlanKey } from './site';
+import { blogAuthor, frameworkKeys, kitPriceList, kits, paymentFaqs, plans, site, type FrameworkKey, type PlanKey } from './site';
 
 type JsonLd = Record<string, unknown>;
 
@@ -188,6 +188,7 @@ const structuredData = (pageData: PageData, url: string, title: string, descript
     graph.push({ '@type': 'Blog', name: pageTitle, description, url, publisher: { '@id': organizationId } }, breadcrumbs([home, { name: 'Blog', url }]));
   } else if (path.startsWith('blog/')) {
     const published = new Date(pageData.frontmatter.date).toISOString();
+    const author = blogAuthor(pageData.frontmatter.author);
 
     graph.push(
       {
@@ -201,7 +202,7 @@ const structuredData = (pageData: PageData, url: string, title: string, descript
         datePublished: published,
         dateModified: pageData.lastUpdated ? new Date(pageData.lastUpdated).toISOString() : published,
         keywords: (pageData.frontmatter.tags ?? []).join(', '),
-        author: { '@type': 'Organization', name: site.company.name, url: site.company.url },
+        author: { '@type': author.type, name: author.name, ...(author.url ? { url: author.url } : {}) },
         publisher: { '@id': organizationId },
         isPartOf: { '@id': websiteId },
       },

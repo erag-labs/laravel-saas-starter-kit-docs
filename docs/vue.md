@@ -71,8 +71,8 @@ The full SaaS Laravel backend (multi-tenancy, auth, users, roles, domains, local
 After purchase you get access to the private repository `erag-labs/saas-laravel-starter-kit-vue` (see [Repository access](/docs/purchase/repository-access)).
 
 ```bash
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git
-cd saas-laravel-starter-kit-vue
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git vue
+cd vue
 ```
 
 ## Install

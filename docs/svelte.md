@@ -68,8 +68,8 @@ What is specific to the Svelte kit compared with Vue and React:
 After purchase, your GitHub account gets access to the private repository `erag-labs/saas-laravel-starter-kit-svelte` automatically (see [Repository access](/docs/purchase/repository-access)).
 
 ```bash
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git
-cd saas-laravel-starter-kit-svelte
+git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git svelte
+cd svelte
 ```
 
 ## Install

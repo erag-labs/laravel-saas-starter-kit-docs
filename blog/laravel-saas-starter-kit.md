@@ -3,6 +3,7 @@ title: "Laravel SaaS Starter Kit: A Complete Buyer's Guide"
 description: "What a Laravel SaaS starter kit should include, how to compare kits and what to check before you buy: multi-tenancy, auth, permissions, license and updates."
 pageClass: blog-page
 date: 2026-09-29
+author: amit-gupta
 tags: [Starter kits, Buyer's guide]
 head:
   - - link
@@ -125,7 +126,7 @@ A good rule of thumb: if the kit saves you even a few days of development, a one
 | --- | --- |
 | Multi-tenancy | Database per tenant with stancl/tenancy, identified by subdomain, with automatic database creation, migrations and seeding |
 | Authentication | Laravel Fortify with email verification, two-factor authentication, recovery codes and passkeys — switchable per domain |
-| Roles and permissions | Spatie roles and permissions with protected system roles, custom roles and permission checks on routes, menus and buttons |
+| Roles and permissions | Spatie roles and permissions with seeded system roles, custom roles and permission checks on routes, menus and buttons |
 | Users and invitations | User management with queued, signed invitation emails |
 | Architecture | Module-based Laravel backend with thin controllers, services and Data objects |
 | Frontend | Your choice of Vue, React or Svelte, all with TypeScript and shadcn-based components |

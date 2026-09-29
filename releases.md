@@ -45,3 +45,4 @@ Badges: text="All kits" (type="info") or text="Vue" / "React" / "Svelte" (type="
 
 - Changed: the kit repositories moved to the `erag-labs` GitHub organization. Update your upstream remote, for example `git remote set-url upstream https://github.com/erag-labs/saas-laravel-starter-kit-vue.git` (use `-react` or `-svelte` for the other kits).
 - Changed: the SaaS Laravel Commercial License now names ERAG as the copyright holder.
+- Improved: the README now clones each kit into a folder named after its framework (`vue`, `react` or `svelte`), which matches the kit's `.test` domain in Laravel Herd.

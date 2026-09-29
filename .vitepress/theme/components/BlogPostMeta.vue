@@ -2,11 +2,13 @@
 import { computed } from 'vue';
 import { useData } from 'vitepress';
 import { data as posts } from '../../../blog/posts.data';
-import { site } from '../../site';
+import { blogAuthor } from '../../site';
 
 const { frontmatter, page } = useData();
 
 const post = computed(() => posts.find((item) => item.url === `/${page.value.relativePath.replace(/\.md$/, '.html')}`));
+
+const author = computed(() => blogAuthor(frontmatter.value.author));
 
 const date = computed(() =>
   new Date(frontmatter.value.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }),
@@ -17,7 +19,11 @@ const date = computed(() =>
   <div class="post-meta">
     <a class="post-back" href="/blog.html">← All articles</a>
     <p class="post-info">
-      <span>By <a class="post-author no-icon" :href="site.company.url" target="_blank" rel="noopener">{{ site.company.name }}</a></span>
+      <span>
+        By
+        <a v-if="author.url" class="post-author no-icon" :href="author.url" target="_blank" rel="noopener author">{{ author.name }}</a>
+        <span v-else class="post-author">{{ author.name }}</span>
+      </span>
       <span aria-hidden="true">·</span>
       <time :datetime="new Date(frontmatter.date).toISOString()">{{ date }}</time>
       <template v-if="post">
