@@ -39,17 +39,17 @@ After purchase, your GitHub account is automatically invited to the kit reposito
 ::: code-group
 
 ```bash [Vue]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git vue
+git clone https://github.com/the-erag/saas-laravel-starter-kit-vue.git vue
 cd vue
 ```
 
 ```bash [React]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git react
+git clone https://github.com/the-erag/saas-laravel-starter-kit-react.git react
 cd react
 ```
 
 ```bash [Svelte]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git svelte
+git clone https://github.com/the-erag/saas-laravel-starter-kit-svelte.git svelte
 cd svelte
 ```
 

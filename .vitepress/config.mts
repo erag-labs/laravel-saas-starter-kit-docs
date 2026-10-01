@@ -105,6 +105,13 @@ export default defineConfig({
   transformHead({ pageData, title, description, content }): HeadConfig[] {
     return seoHead(pageData, title, description, content);
   },
+  // Write "React & Svelte" instead of "React &amp; Svelte" in the <head>, so SEO tools show a plain "&".
+  // A bare "&" followed by a space is valid HTML5; any other "&amp;" (e.g. in URLs) is left alone.
+  transformHtml(html) {
+    const end = html.indexOf('</head>');
+
+    return html.slice(0, end).replace(/&amp; /g, '& ') + html.slice(end);
+  },
   async buildEnd(siteConfig) {
     await writeLlmsFiles(siteConfig.srcDir, siteConfig.outDir, docsSidebar);
   },

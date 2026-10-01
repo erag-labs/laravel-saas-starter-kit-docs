@@ -28,9 +28,9 @@ Each starter kit lives in its own private GitHub repository:
 
 | Kit | Repository |
 | --- | --- |
-| <Badge type="tip" text="Vue" /> | `erag-labs/saas-laravel-starter-kit-vue` |
-| <Badge type="tip" text="React" /> | `erag-labs/saas-laravel-starter-kit-react` |
-| <Badge type="tip" text="Svelte" /> | `erag-labs/saas-laravel-starter-kit-svelte` |
+| <Badge type="tip" text="Vue" /> | `the-erag/saas-laravel-starter-kit-vue` |
+| <Badge type="tip" text="React" /> | `the-erag/saas-laravel-starter-kit-react` |
+| <Badge type="tip" text="Svelte" /> | `the-erag/saas-laravel-starter-kit-svelte` |
 
 The **All Starter Kits** bundle gives you access to all three repositories.
 
@@ -63,21 +63,21 @@ If the invitation does not arrive, open an issue or contact the maintainer throu
 ::: code-group
 
 ```bash [Vue]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-vue.git vue
+git clone https://github.com/the-erag/saas-laravel-starter-kit-vue.git vue
 ```
 
 ```bash [React]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-react.git react
+git clone https://github.com/the-erag/saas-laravel-starter-kit-react.git react
 ```
 
 ```bash [Svelte]
-git clone https://github.com/erag-labs/saas-laravel-starter-kit-svelte.git svelte
+git clone https://github.com/the-erag/saas-laravel-starter-kit-svelte.git svelte
 ```
 
 :::
 
 ::: tip Authentication
-Cloning a private repository over HTTPS needs GitHub authentication: GitHub CLI (`gh auth login`), a credential helper or a personal access token. SSH works too, for example `git@github.com:erag-labs/saas-laravel-starter-kit-vue.git`.
+Cloning a private repository over HTTPS needs GitHub authentication: GitHub CLI (`gh auth login`), a credential helper or a personal access token. SSH works too, for example `git@github.com:the-erag/saas-laravel-starter-kit-vue.git`.
 :::
 
 Next:

@@ -34,7 +34,7 @@ export interface Plan {
   featured: boolean;
 }
 
-const githubOwner = 'https://github.com/erag-labs';
+const githubOwner = 'https://github.com/the-erag';
 
 export const prices = { vue: 29, react: 30, svelte: 33, bundle: 79 } as const;
 
@@ -53,7 +53,13 @@ export const site = {
   themeColor: '#4f46e5',
   sponsorUrl: 'https://github.com/sponsors/eramitgupta',
   githubProfile: githubOwner,
-  company: { name: 'ERAG', url: 'https://erag.in', email: 'erag.office@gmail.com' },
+  company: {
+    name: 'ERAG',
+    tagline: 'Engineer • Research • Advance • Grow',
+    url: 'https://erag.in',
+    github: githubOwner,
+    email: 'erag.office@gmail.com',
+  },
   social: {
     github: githubOwner,
     linkedin: 'https://www.linkedin.com/company/erag-labs',

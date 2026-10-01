@@ -66,7 +66,10 @@ const social: { icon: IconName; label: string; href: string; external: boolean }
       </nav>
     </div>
     <div class="sl-container footer-bottom">
-      <span>© {{ year }} <a class="footer-company" :href="site.company.url" target="_blank" rel="noopener">{{ site.company.name }}</a>. All rights reserved.</span>
+      <span>
+        © {{ year }} <a class="footer-company" :href="site.company.url" target="_blank" rel="noopener">{{ site.company.name }}</a>. All rights reserved.
+        <span class="footer-tagline">{{ site.company.name }} — {{ site.company.tagline }}</span>
+      </span>
       <div class="footer-social">
         <a v-for="item in social" :key="item.label" :href="item.href" :target="item.external ? '_blank' : undefined" :rel="item.external ? 'noopener' : undefined">
           <SlIcon :name="item.icon" :size="18" /><span class="sl-sr-only">{{ item.label }}</span>
@@ -171,6 +174,13 @@ const social: { icon: IconName; label: string; href: string; external: boolean }
 .footer-company {
   display: inline !important;
   font-weight: 600;
+}
+
+.footer-tagline {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
 }
 
 .footer-social {
